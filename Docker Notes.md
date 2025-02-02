@@ -120,46 +120,46 @@ CMD ["python", "server.py"]
 # CMD ["npx", "serve", "-s", "dist"]   # Actual Command: npx serve -s dist
 ```
 
-### Build
-```docker build .``` (builds everything in the pwd)
-```docker build -t app:01``` (tagging name:version)
+## Build
+- ```docker build .``` (builds everything in the pwd)
+- ```docker build -t app:01``` (tagging name:version)
 
-### Run
-```docker run -d --hostname my-rabbit --name some-rabbit -p 5672:5672 -p 15672:15672 rabbitmq:3-management```
-```docker run -d --rm app``` (runs in detached mode and deletes when program in the docker stops)
-```docker run -d --rm --name "some_name" -p machine_port:docker_port app imageid``` (adding name)
-```docker run -d --rm --name "some_name" -p machine_port:docker_port app imagename:version``` (run with image name and version)
-```docker run -it ubuntu``` (interactive mode)
+## Run
+- ```docker run -d --hostname my-rabbit --name some-rabbit -p 5672:5672 -p 15672:15672 rabbitmq:3-management```
+- ```docker run -d --rm app``` (runs in detached mode and deletes when program in the docker stops)
+- ```docker run -d --rm --name "some_name" -p machine_port:docker_port app imageid``` (adding name)
+- ```docker run -d --rm --name "some_name" -p machine_port:docker_port app imagename:version``` (run with image name and version)
+- ```docker run -it ubuntu``` (interactive mode)
 
-### Logs
-```docker logs podname```
+## Logs
+- ```docker logs podname```
 
-### Volume
-```docker run -it --rm -v volumename:/imagename``` (Volume and data in that will persist even after the container is deleted)
-```docker volume ls``` (List all volumes)
+## Volume
+- ```docker run -it --rm -v volumename:/imagename``` (Volume and data in that will persist even after the container is deleted)
+- ```docker volume ls``` (List all volumes)
 
-### Mount Bind
-```docker run -v /User/nikhil/project/services.txt:/app/services.txt --rm imageidOrname``` (Binding local path to volume)
+## Mount Bind
+- ```docker run -v /User/nikhil/project/services.txt:/app/services.txt --rm imageidOrname``` (Binding local path to volume)
 
-### List
-```docker images``` (all images)
-```docker ps -a``` (all containers)
-```docker ps``` (running containers)
+## List
+- ```docker images``` (all images)
+- ```docker ps -a``` (all containers)
+- ```docker ps``` (running containers)
 
-### Stop
-```docker stop containerid```
-```docker stop containername```
+## Stop
+- ```docker stop containerid```
+- ```docker stop containername```
 
-### Remove
-```docker rm container_name``` (containerId)
-```docker rmi image_name```	(imageId)
+## Remove
+- ```docker rm container_name``` (containerId)
+- ```docker rmi image_name```	(imageId)
 
-### Container info
-```docker inspect containername```
+## Container info
+- ```docker inspect containername```
 
-### Dockerhub pulling
-```docker pull image_name```
-```docker run image_name```
+## Dockerhub pulling
+- ```docker pull image_name```
+- ```docker run image_name```
 Ex:
 ```
 docker pull mysql
@@ -167,15 +167,15 @@ docker run -d --env MYSQL_ROOT_PASSWORD="root" --env MYSQL_DATABASE="TableName" 
 docker logs mysqldb
 ```
 
-### Docker and DBMS
+## Docker and DBMS
 - Use ```host="host.docker.internal"``` for any DB connection instead of ```host="localhost"```
 - When trying to connect two pods one with program to connect DBMS and another with MySQL DBMS then use ```docker inspect podname``` and in NETWORK section use the IPAddress as host in the program.
 
-### Network
-```docker network create my-net```
-```docker network create -d bridge my-network``` (network in detach mode)
-```docker network ls``` (List all networks)
-```docker run -d --env MYSQL_ROOT_PASSWORD="root" --env MYSQL_DATABASE="TableName" --name mysqldb --network my-net mysql```
+## Network
+- ```docker network create my-net```
+- ```docker network create -d bridge my-network``` (network in detach mode)
+- ```docker network ls``` (List all networks)
+- ```docker run -d --env MYSQL_ROOT_PASSWORD="root" --env MYSQL_DATABASE="TableName" --name mysqldb --network my-net mysql```
 We can use ```mysqldb``` as the host in the program to connect to DB
 docker network rm my-net
 
@@ -193,7 +193,7 @@ docker stop some-nginx
 docker rm some-nginx
 ```
 
-### Example docker compose file
+## Example docker compose file
 - filename: docker-compose.yml
 ```
 services:
@@ -229,21 +229,21 @@ services:
 # Refer for more info: https://docs.docker.com/reference/compose-file/services/
 ```
 
-### Run all images using one docker file
-```docker-compose up -d```
-```docker-compose down```
+## Run all images using one docker file
+- ```docker-compose up -d```
+- ```docker-compose down```
 
-```docker-compose run -d mysqldb``` (Run services from the docker-compose.yml file)
-```docker-compose run app``` (This uses interactive mode so takes input from the user and as app depends on mysqldb if we run app both services will be up)
+- ```docker-compose run -d mysqldb``` (Run services from the docker-compose.yml file)
+- ```docker-compose run app``` (This uses interactive mode so takes input from the user and as app depends on mysqldb if we run app both services will be up)
 
-```docker-compose down -v```  (To delete volumes and networks)
+- ```docker-compose down -v```  (To delete volumes and networks)
 
-### Kubernetes Commands:
-**List Services:** ```k get po```
-**Filter Services:** ```kubectl get pods | grep webhook```
-**Execute Commands In POD:** ```k exec -it name -- node -v```
-**Image Info:** ```k describe pod name | grep -i CONTAINER_1_IMAGE```
-**POD Logs:** ```k logs podname –tail=10```
-**Restart Cluster:** ```kubectl rollout restart deployment/name```
-**Delete POD:** ```kubectl get pods -o name | grep fit | xargs kubectl delete```
-**Delete And Restart:** ```kubectl delete pod name```
+## Kubernetes Commands:
+- **List Services:** ```k get po```
+- **Filter Services:** ```kubectl get pods | grep pattern```
+- **Execute Commands In POD:** ```k exec -it name -- node -v```
+- **Image Info:** ```k describe pod name | grep -i CONTAINER_1_IMAGE```
+- **POD Logs:** ```k logs podname –tail=10```
+- **Restart Cluster:** ```kubectl rollout restart deployment/name```
+- **Delete POD:** ```kubectl get pods -o name | grep fit | xargs kubectl delete```
+- **Delete And Restart:** ```kubectl delete pod name```
