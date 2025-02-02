@@ -100,9 +100,12 @@ Here's how these concepts work together:
 - Containers can be started, stopped, and deleted independently, making them a flexible and scalable way to deploy and manage applications.
 Overall, Docker simplifies application deployment by packaging everything needed to run an application into a single, portable unit (the image) and then creating isolated instances (containers) that can be managed and scaled efficiently. Images, containers, registries, and Dockerfiles are core components of this containerization technology.
 
+# Docker Commands:
+
 ## Example Dockerfile
 
 - Filename: Dockerfile
+- Dockerfile is used to configure docker container
 ```
 FROM python
 
@@ -117,48 +120,46 @@ CMD ["python", "server.py"]
 # CMD ["npx", "serve", "-s", "dist"]   # Actual Command: npx serve -s dist
 ```
 
-# Docker Commands:
-
 ### Build
-docker build . (builds everything in the pwd)
-docker build -t app:01 (tagging name:version)
+```docker build .``` (builds everything in the pwd)
+```docker build -t app:01``` (tagging name:version)
 
 ### Run
-docker run -d --hostname my-rabbit --name some-rabbit -p 5672:5672 -p 15672:15672 rabbitmq:3-management
-docker run -d --rm app (runs in detached mode and deletes when program in the docker stops)
-docker run -d --rm --name "some_name" -p machine_port:docker_port app imageid (adding name)
-docker run -d --rm --name "some_name" -p machine_port:docker_port app imagename:version (run with image name and version)
-docker run -it ubuntu (interactive mode)
+```docker run -d --hostname my-rabbit --name some-rabbit -p 5672:5672 -p 15672:15672 rabbitmq:3-management```
+```docker run -d --rm app``` (runs in detached mode and deletes when program in the docker stops)
+```docker run -d --rm --name "some_name" -p machine_port:docker_port app imageid``` (adding name)
+```docker run -d --rm --name "some_name" -p machine_port:docker_port app imagename:version``` (run with image name and version)
+```docker run -it ubuntu``` (interactive mode)
 
 ### Logs
-docker logs podname
+```docker logs podname```
 
 ### Volume
-docker run -it --rm -v volumename:/imagename (Volume and data in that will persist even after the container is deleted)
-docker volume ls (List all volumes)
+```docker run -it --rm -v volumename:/imagename``` (Volume and data in that will persist even after the container is deleted)
+```docker volume ls``` (List all volumes)
 
 ### Mount Bind
-docker run -v /User/nikhil/project/services.txt:/app/services.txt --rm imageidOrname    (Binding local path to volume)
+```docker run -v /User/nikhil/project/services.txt:/app/services.txt --rm imageidOrname``` (Binding local path to volume)
 
 ### List
-docker images  (all images)
-docker ps -a (all containers)
-docker ps	 (running containers)
+```docker images``` (all images)
+```docker ps -a``` (all containers)
+```docker ps``` (running containers)
 
 ### Stop
-docker stop containerid
-docker stop containername
+```docker stop containerid```
+```docker stop containername```
 
 ### Remove
-docker rm sharp_noyce (containerId)
-docker rmi hello-world	(imageId)
+```docker rm container_name``` (containerId)
+```docker rmi image_name```	(imageId)
 
 ### Container info
-docker inspect containername
+```docker inspect containername```
 
 ### Dockerhub pulling
-docker pull image_name
-docker run image_name
+```docker pull image_name```
+```docker run image_name```
 Ex:
 ```
 docker pull mysql
@@ -171,13 +172,14 @@ docker logs mysqldb
 - When trying to connect two pods one with program to connect DBMS and another with MySQL DBMS then use ```docker inspect podname``` and in NETWORK section use the IPAddress as host in the program.
 
 ### Network
-docker network create my-net
-docker network create -d bridge my-network (network in detach mode)
-docker network ls
-docker run -d --env MYSQL_ROOT_PASSWORD="root" --env MYSQL_DATABASE="TableName" --name mysqldb --network my-net mysql
+```docker network create my-net```
+```docker network create -d bridge my-network``` (network in detach mode)
+```docker network ls``` (List all networks)
+```docker run -d --env MYSQL_ROOT_PASSWORD="root" --env MYSQL_DATABASE="TableName" --name mysqldb --network my-net mysql```
 We can use ```mysqldb``` as the host in the program to connect to DB
 docker network rm my-net
 
+```
 docker run --name some-mongo --network my-network -d mongo (server)
 docker run -it --network my-network --rm mongo mongosh --host some-mongo test (client)
 
@@ -189,6 +191,7 @@ docker run --name some-nginx -v D:/demo:/usr/share/nginx/html -p 8888:80 -d ngin
 docker exec -it some-nginx bash
 docker stop some-nginx
 docker rm some-nginx
+```
 
 ### Example docker compose file
 - filename: docker-compose.yml
@@ -227,10 +230,20 @@ services:
 ```
 
 ### Run all images using one docker file
-docker-compose up -d
-docker-compose down
+```docker-compose up -d```
+```docker-compose down```
 
-docker-compose run -d mysqldb (Run services from the docker-compose.yml file)
-docker-compose run app (This uses interactive mode so takes input from the user and as app depends on mysqldb if we run app both services will be up)
+```docker-compose run -d mysqldb``` (Run services from the docker-compose.yml file)
+```docker-compose run app``` (This uses interactive mode so takes input from the user and as app depends on mysqldb if we run app both services will be up)
 
-docker-compose down -v  (To delete volumes and networks)
+```docker-compose down -v```  (To delete volumes and networks)
+
+### Kubernetes Commands:
+**List Services:** ```k get po```
+**Filter Services:** ```kubectl get pods | grep webhook```
+**Execute Commands In POD:** ```k exec -it name -- node -v```
+**Image Info:** ```k describe pod name | grep -i CONTAINER_1_IMAGE```
+**POD Logs:** ```k logs podname –tail=10```
+**Restart Cluster:** ```kubectl rollout restart deployment/name```
+**Delete POD:** ```kubectl get pods -o name | grep fit | xargs kubectl delete```
+**Delete And Restart:** ```kubectl delete pod name```
