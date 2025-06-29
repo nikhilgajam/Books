@@ -244,7 +244,7 @@ services:
 - **List Services:** ```k get po```
 - **Filter Services:** ```kubectl get pods | grep pattern```
 - **Execute Commands In POD:** ```k exec -it name -- node -v```
-- **Image Info:** ```k describe pod name | grep -i CONTAINER_1_IMAGE```
+- **Image Info:** ```k describe pod name | grep -i IMAGE```
 - **POD Logs:** ```k logs podname –tail=10```
 - **Restart Cluster:** ```kubectl rollout restart deployment/name```
 - **Delete POD:** ```kubectl get pods -o name | grep fit | xargs kubectl delete```
