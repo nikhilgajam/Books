@@ -126,6 +126,7 @@ CMD ["python", "server.py"]
 
 ## Run
 - ```docker run -d --hostname my-rabbit --name some-rabbit -p 5672:5672 -p 15672:15672 rabbitmq:3-management```
+- ```docker run --name redis -p 6379:6379 -d redis``` (detached mode)
 - ```docker run -d --rm app``` (runs in detached mode and deletes when program in the docker stops)
 - ```docker run -d --rm --name "some_name" -p machine_port:docker_port app imageid``` (adding name)
 - ```docker run -d --rm --name "some_name" -p machine_port:docker_port app imagename:version``` (run with image name and version)
@@ -160,6 +161,7 @@ CMD ["python", "server.py"]
 ## Dockerhub pulling
 - ```docker pull image_name```
 - ```docker run image_name```
+
 Ex:
 ```
 docker pull mysql
@@ -246,4 +248,8 @@ services:
 - **POD Logs:** ```k logs podname –tail=10```
 - **Restart Cluster:** ```kubectl rollout restart deployment/name```
 - **Delete POD:** ```kubectl get pods -o name | grep fit | xargs kubectl delete```
-- **Delete And Restart:** ```kubectl delete pod name```
+- **Delete And Restart:** ```kubectl delete podname```
+- **Scaling Down:** ```k scale --replicas=0 deployment/name```
+- **Scaling Up:** ```k scale --replicas=count deployment/name```
+- **Checking Files:** ```k exec -it podname -- cat something/filename.ext```
+- **Checking Node ENV Variables:**  ```kubectl exec -it podname -- /bin/sh -c 'node -e "console.log(process.env)"'```
