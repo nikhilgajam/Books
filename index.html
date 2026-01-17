@@ -396,13 +396,12 @@
                 state.pdfDoc = await loadingTask.promise;
                 els.totalPages.innerText = state.pdfDoc.numPages;
 
-                // --- NEW: Load Saved Zoom Value ---
+                // Load Saved Zoom Value
                 const savedScale = parseFloat(localStorage.getItem(`scale_${path}`));
 
                 if (savedScale) {
                     state.scale = savedScale;
                 } else {
-                    // Fallback logic if no zoom is saved
                     if (window.innerWidth < 768) {
                         const page = await state.pdfDoc.getPage(state.pageNum);
                         const unscaledViewport = page.getViewport({ scale: 1 });
@@ -411,7 +410,6 @@
                         state.scale = 1.2;
                     }
                 }
-                // ----------------------------------
 
                 renderPage(state.pageNum);
             } catch (e) {
@@ -468,26 +466,48 @@
 
         function setupPinchZoom() {
             const container = els.scroll;
+            let pinchScale = 1; // Track the temporary zoom level
+
             container.addEventListener('touchstart', (e) => {
                 if (e.touches.length === 2) {
                     state.touchStartDist = getDist(e.touches);
-                    state.touchStartScale = state.scale;
+                    state.touchStartScale = state.scale; // Remember starting scale
+                    pinchScale = 1; 
                     e.preventDefault(); 
                 }
             }, { passive: false });
 
+            // touch events
             container.addEventListener('touchmove', (e) => {
                 if (e.touches.length === 2) {
                     e.preventDefault();
                     const newDist = getDist(e.touches);
-                    const scaleFactor = newDist / state.touchStartDist;
-                    els.pdfWrapper.style.transform = `scale(${scaleFactor})`;
+                    pinchScale = newDist / state.touchStartDist;
+                    // Apply visual stretch immediately (blurry but fast)
+                    els.pdfWrapper.style.transform = `scale(${pinchScale})`;
                 }
             }, { passive: false });
 
+            // touch events
             container.addEventListener('touchend', (e) => {
+                // When fingers lift, commit the change
                 if (e.touches.length < 2 && state.touchStartDist > 0) {
-                    els.pdfWrapper.style.transform = `scale(1)`;
+                    
+                    // 1. Calculate the new official scale
+                    let newScale = state.touchStartScale * pinchScale;
+                    
+                    // 2. Limit the zoom (0.5x to 5.0x)
+                    if (newScale < 0.5) newScale = 0.5;
+                    if (newScale > 5.0) newScale = 5.0;
+
+                    // 3. Update global state
+                    state.scale = newScale;
+                    localStorage.setItem(`scale_${state.currentPath}`, state.scale);
+
+                    // 4. Re-render the page (this makes the text crisp and resets the CSS transform)
+                    renderPage(state.pageNum);
+                    
+                    // 5. Reset touch state
                     state.touchStartDist = 0;
                 }
             });
@@ -547,9 +567,7 @@
             if(state.scale < 0.5) state.scale = 0.5;
             if(state.scale > 5.0) state.scale = 5.0; 
             
-            // --- NEW: Save Zoom Value ---
             localStorage.setItem(`scale_${state.currentPath}`, state.scale);
-            // ----------------------------
 
             renderPage(state.pageNum);
         }
