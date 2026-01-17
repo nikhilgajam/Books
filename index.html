@@ -162,17 +162,20 @@
         }
         .controls-hidden .doc-title-float { opacity: 0; }
 
+        /* FIXED: Removed justify-content: center to allow full scrolling when zoomed */
         #pdf-scroll-container {
-            flex: 1; overflow: auto; display: flex; justify-content: center;
+            flex: 1; overflow: auto; display: flex;
             padding-top: 100px; padding-bottom: 50px; background: #0a0a0a; cursor: default; 
             touch-action: pan-x pan-y;
         }
 
+        /* FIXED: Added margin: auto to handle safe centering */
         #pdf-wrapper { 
             position: relative; 
             box-shadow: 0 5px 20px rgba(0,0,0,0.6); 
             transition: opacity 0.2s;
             transform-origin: center top; 
+            margin: auto;
         }
 
         .night-mode #pdf-wrapper { 
