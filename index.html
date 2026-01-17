@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nikhil's Library</title>
 
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23e5e5e5%22 stroke=%22%230a0a0a%22 stroke-width=%221.5%22 stroke-linejoin=%22round%22><path d=%22M12 5c-3 0-6-1.5-8-3v16c2 1.5 5 3 8 3s6-1.5 8-3V2c-2 1.5-5 3-8 3z%22/><line x1=%2212%22 y1=%225%22 x2=%2212%22 y2=%2221%22/></svg>">
@@ -14,14 +14,13 @@
     <style>
         :root {
             /* Premium Monochrome Theme */
-            --bg-deep: #0a0a0a;             /* True Black/Dark Gray */
+            --bg-deep: #0a0a0a;             
             --bg-glass: rgba(20, 20, 20, 0.95);
             --bg-card: rgba(35, 35, 35, 0.6);
             --bg-card-hover: rgba(50, 50, 50, 0.9);
             
-            /* Whitish-Gray Accent */
-            --accent: #e5e5e5;              /* Whitish Silver */
-            --accent-dim: #a3a3a3;          /* Darker Gray for secondary */
+            --accent: #e5e5e5;              
+            --accent-dim: #a3a3a3;          
             --accent-glow: rgba(255, 255, 255, 0.15);
             
             --text-main: #ffffff;
@@ -33,7 +32,6 @@
 
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-        /* --- DARK SCROLLBARS --- */
         ::-webkit-scrollbar { width: 10px; height: 10px; }
         ::-webkit-scrollbar-track { background: var(--bg-deep); }
         ::-webkit-scrollbar-thumb {
@@ -48,13 +46,11 @@
             color: var(--text-main);
             height: 100vh;
             display: flex; flex-direction: column; overflow: hidden;
-            /* Subtle Silver Gradient Background */
             background-image: 
                 radial-gradient(at 0% 0%, rgba(255, 255, 255, 0.05) 0px, transparent 50%),
                 radial-gradient(at 100% 100%, rgba(255, 255, 255, 0.03) 0px, transparent 50%);
         }
 
-        /* --- HEADER --- */
         header {
             position: fixed; top: 0; left: 0; right: 0; height: 70px;
             display: flex; align-items: center; justify-content: space-between;
@@ -74,7 +70,6 @@
         .search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); background: rgba(255,255,255,0.1); }
         .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-sec); pointer-events: none; }
 
-        /* --- LIBRARY GRID --- */
         #library-view { flex: 1; overflow-y: auto; padding: 100px 5% 40px; }
 
         .pdf-grid {
@@ -90,7 +85,6 @@
         }
         .pdf-card:hover { transform: translateY(-6px); background: var(--bg-card-hover); border-color: var(--accent-dim); box-shadow: 0 15px 30px rgba(0,0,0,0.4); }
         
-        /* Silver Spine Effect */
         .pdf-card::after { 
             content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; 
             background: linear-gradient(to bottom, var(--accent), #555); opacity: 0.8; 
@@ -103,7 +97,6 @@
             font-size: 1.2rem; margin-bottom: 15px; color: var(--accent);
         }
         
-        /* Title CSS for Full Names */
         .card-title { 
             font-weight: 500; font-size: 0.95rem; line-height: 1.5; color: var(--text-main);
             display: -webkit-box; 
@@ -114,14 +107,12 @@
         
         .card-footer { margin-top: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-sec); }
         
-        /* Monochrome Badge */
         .badge { 
             background: rgba(255, 255, 255, 0.15); color: #fff; 
             padding: 3px 10px; border-radius: 4px; font-weight: 600; font-size: 0.75rem; 
             border: 1px solid rgba(255,255,255,0.1);
         }
 
-        /* --- VIEWER --- */
         #viewer-overlay {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #050505;
             z-index: 100; display: none; flex-direction: column; animation: fadeIn 0.3s ease;
@@ -162,24 +153,34 @@
         .page-total { color: var(--text-sec); font-size: 0.9rem; font-weight: 500; margin: 0 6px; white-space: nowrap; }
 
         .doc-title-float {
-            position: absolute; top: 100px; left: 50%; transform: translateX(-50%);
+            position: absolute; 
+            top: 130px; 
+            left: 50%; transform: translateX(-50%);
             background: rgba(40,40,40,0.8); padding: 8px 20px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1);
             font-size: 0.85rem; color: rgba(255,255,255,0.9); pointer-events: none;
             transition: opacity 0.3s; backdrop-filter: blur(8px);
         }
         .controls-hidden .doc-title-float { opacity: 0; }
 
-        /* --- CANVAS --- */
         #pdf-scroll-container {
             flex: 1; overflow: auto; display: flex; justify-content: center;
             padding-top: 100px; padding-bottom: 50px; background: #0a0a0a; cursor: default; 
+            touch-action: pan-x pan-y;
         }
 
-        #pdf-wrapper { position: relative; box-shadow: 0 5px 20px rgba(0,0,0,0.6); transition: opacity 0.2s; }
-        .night-mode #pdf-wrapper { filter: invert(0.92) hue-rotate(180deg) grayscale(0.1); }
+        #pdf-wrapper { 
+            position: relative; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.6); 
+            transition: opacity 0.2s;
+            transform-origin: center top; 
+        }
+
+        .night-mode #pdf-wrapper { 
+            filter: invert(0.92) hue-rotate(180deg) grayscale(0.1); 
+            box-shadow: none !important;
+        }
         .night-mode #pdf-scroll-container { background: #000; }
 
-        /* --- LOADERS --- */
         .spinner {
             width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-radius: 50%;
             border-top-color: var(--accent); animation: spin 1s linear infinite; margin: 0 auto 20px;
@@ -205,7 +206,8 @@
             .controls-hidden #viewer-toolbar { transform: translateX(-50%) translateY(50px); }
             #pdf-scroll-container { padding-top: 30px; padding-bottom: 100px; }
             .hide-mobile { display: none; }
-            .doc-title-float { top: 20px; font-size: 0.75rem; }
+            
+            .doc-title-float { top: 80px; font-size: 0.75rem; }
         }
     </style>
 </head>
@@ -285,12 +287,15 @@
     </div>
 
     <script>
+        // Github repo details
         const GITHUB_CONFIG = { owner: 'nikhilgajam', repo: 'Books', branch: 'main' };
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+        // Default State
         let state = {
             files: [], fileMap: {}, pdfDoc: null, pageNum: 1, scale: 1.2,
-            rendering: false, queue: null, currentPath: null, isNight: true
+            rendering: false, queue: null, currentPath: null, isNight: true,
+            touchStartDist: 0, touchStartScale: 1
         };
 
         const els = {
@@ -305,13 +310,15 @@
             scroll: document.getElementById('pdf-scroll-container'),
             title: document.getElementById('viewer-title'),
             loader: document.getElementById('page-loader'),
-            searchInput: document.getElementById('search-input')
+            searchInput: document.getElementById('search-input'),
+            pdfWrapper: document.getElementById('pdf-wrapper')
         };
 
         window.onload = init;
 
         async function init() {
             window.addEventListener('keydown', handleGlobalKeys);
+            setupPinchZoom();
             const cacheKey = `gh_${GITHUB_CONFIG.owner}_${GITHUB_CONFIG.repo}`;
             const cached = sessionStorage.getItem(cacheKey);
             if (cached) renderLibrary(JSON.parse(cached));
@@ -334,24 +341,16 @@
         }
 
         function renderLibrary(files) {
-            // --- NEW: Sort Logic ---
-            // Prioritize books with progress (page > 1)
             files.sort((a, b) => {
                 const getPage = (p) => parseInt(localStorage.getItem(`pg_${p}`)) || 0;
                 const pageA = getPage(a);
                 const pageB = getPage(b);
-                
                 const isStartedA = pageA > 1;
                 const isStartedB = pageB > 1;
-                
-                // If A is started and B is not, A comes first (-1)
                 if (isStartedA && !isStartedB) return -1;
-                // If B is started and A is not, B comes first (1)
                 if (!isStartedA && isStartedB) return 1;
-                // Otherwise keep relative order
                 return 0;
             });
-            // -----------------------
 
             state.files = files;
             els.status.style.display = 'none';
@@ -373,7 +372,6 @@
         }
 
         async function openReader(path) {
-            state.scale = 1.2; 
             state.currentPath = path;
             state.pageNum = parseInt(localStorage.getItem(`pg_${path}`)) || 1;
             els.title.innerText = path.split('/').pop();
@@ -397,8 +395,27 @@
                 const loadingTask = pdfjsLib.getDocument(url);
                 state.pdfDoc = await loadingTask.promise;
                 els.totalPages.innerText = state.pdfDoc.numPages;
+
+                // --- NEW: Load Saved Zoom Value ---
+                const savedScale = parseFloat(localStorage.getItem(`scale_${path}`));
+
+                if (savedScale) {
+                    state.scale = savedScale;
+                } else {
+                    // Fallback logic if no zoom is saved
+                    if (window.innerWidth < 768) {
+                        const page = await state.pdfDoc.getPage(state.pageNum);
+                        const unscaledViewport = page.getViewport({ scale: 1 });
+                        state.scale = (window.innerWidth - 20) / unscaledViewport.width;
+                    } else {
+                        state.scale = 1.2;
+                    }
+                }
+                // ----------------------------------
+
                 renderPage(state.pageNum);
             } catch (e) {
+                console.error(e);
                 alert("Could not load PDF.");
                 closeReader();
             }
@@ -407,6 +424,8 @@
         async function renderPage(num) {
             state.rendering = true;
             els.loader.style.display = 'flex';
+            els.pdfWrapper.style.transform = `scale(1)`;
+            
             try {
                 const page = await state.pdfDoc.getPage(num);
                 const viewport = page.getViewport({scale: state.scale});
@@ -433,7 +452,9 @@
 
                 els.pageInput.value = num;
                 localStorage.setItem(`pg_${state.currentPath}`, num);
-                els.scroll.scrollTop = 0;
+                
+                if (!state.touchStartDist) els.scroll.scrollTop = 0;
+                
             } catch(e) {
                 console.error(e);
             } finally {
@@ -443,6 +464,40 @@
                     const next = state.queue; state.queue = null; renderPage(next); 
                 }
             }
+        }
+
+        function setupPinchZoom() {
+            const container = els.scroll;
+            container.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    state.touchStartDist = getDist(e.touches);
+                    state.touchStartScale = state.scale;
+                    e.preventDefault(); 
+                }
+            }, { passive: false });
+
+            container.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    const newDist = getDist(e.touches);
+                    const scaleFactor = newDist / state.touchStartDist;
+                    els.pdfWrapper.style.transform = `scale(${scaleFactor})`;
+                }
+            }, { passive: false });
+
+            container.addEventListener('touchend', (e) => {
+                if (e.touches.length < 2 && state.touchStartDist > 0) {
+                    els.pdfWrapper.style.transform = `scale(1)`;
+                    state.touchStartDist = 0;
+                }
+            });
+        }
+
+        function getDist(touches) {
+            return Math.hypot(
+                touches[0].pageX - touches[1].pageX,
+                touches[0].pageY - touches[1].pageY
+            );
         }
 
         function handleGlobalKeys(e) {
@@ -491,6 +546,11 @@
             state.scale += delta;
             if(state.scale < 0.5) state.scale = 0.5;
             if(state.scale > 5.0) state.scale = 5.0; 
+            
+            // --- NEW: Save Zoom Value ---
+            localStorage.setItem(`scale_${state.currentPath}`, state.scale);
+            // ----------------------------
+
             renderPage(state.pageNum);
         }
 
@@ -521,7 +581,6 @@
             filtered.forEach(path => {
                 const name = path.split('/').pop().replace('.pdf', '');
                 const saved = parseInt(localStorage.getItem(`pg_${path}`)) || 0;
-                // Included badge logic in search results too for consistency
                 const badge = saved > 1 ? `<span class="badge">Pg ${saved}</span>` : '';
                 const card = document.createElement('div');
                 card.className = 'pdf-card';
