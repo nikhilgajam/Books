@@ -447,13 +447,29 @@
 
         @media (max-width: 768px) {
             header {
-                padding: 0 15px;
-                gap: 10px;
+                padding: 0 10px;
+                gap: 8px;
             }
 
             .brand span {
                 display: none;
+                /* Now this works! Hides text, keeps icon */
             }
+
+            .search-wrapper {
+                margin: 0 5px;
+                /* Removes large desktop margins */
+            }
+
+            .search-input {
+                font-size: 16px;
+                /* Prevents auto-zoom on iPhones */
+                padding-left: 40px;
+                /* Adjust padding for smaller screens */
+                padding-right: 10px;
+            }
+
+            /* ----------------------- */
 
             .pdf-grid {
                 grid-template-columns: 1fr;
@@ -490,7 +506,8 @@
 <body>
 
     <header id="app-header">
-        <div class="brand" style="cursor: default;"><i class="ri-book-read-fill"></i> Nikhil's Library</div>
+        <div class="brand" style="cursor: default;"><i class="ri-book-read-fill"></i> <span>Nikhil's Library</span>
+        </div>
         <div class="search-wrapper">
             <i class="ri-search-line search-icon"></i>
             <input type="text" id="search-input" class="search-input" placeholder="Search library...">
@@ -927,4 +944,5 @@
         });
     </script>
 </body>
+
 </html>
