@@ -35,7 +35,7 @@ Nikhil's Library is a serverless Single Page Application (SPA) that transforms a
 
 ### 🛠 Technical Capabilities
 * **Custom PDF Engine:** Built on top of **PDF.js (v3.11)** for high-fidelity rendering directly in the browser canvas.
-* **Offline Fallback:** Includes a "Local Folder" mode. If the GitHub API rate limit is reached, users can manually load a local folder of PDFs to use the reader interface.
+* **Offline Fallback:** Includes a "Local Folder" mode. If the GitHub API rate limit is reached, users can manually load a local folder of PDFs to use the reader interface. And also can read from your Local System with the load local PDF button.
 * **Keyboard Shortcuts:**
     * `Left/Right Arrows`: Navigate pages.
     * `Enter`: Jump to a specific page number.

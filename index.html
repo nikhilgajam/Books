@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nikhil's Library</title>
 
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23e5e5e5%22 stroke=%22%230a0a0a%22 stroke-width=%221.5%22 stroke-linejoin=%22round%22><path d=%22M12 5c-3 0-6-1.5-8-3v16c2 1.5 5 3 8 3s6-1.5 8-3V2c-2 1.5-5 3-8 3z%22/><line x1=%2212%22 y1=%225%22 x2=%2212%22 y2=%2221%22/></svg>">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23e5e5e5%22 stroke=%22%230a0a0a%22 stroke-width=%221.5%22 stroke-linejoin=%22round%22><path d=%22M12 5c-3 0-6-1.5-8-3v16c2 1.5 5 3 8 3s6-1.5 8-3V2c-2 1.5-5 3-8 3z%22/><line x1=%2212%22 y1=%225%22 x2=%2212%22 y2=%2221%22/></svg>">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.css">
@@ -14,214 +16,491 @@
     <style>
         :root {
             /* Premium Monochrome Theme */
-            --bg-deep: #0a0a0a;             
+            --bg-deep: #0a0a0a;
             --bg-glass: rgba(20, 20, 20, 0.95);
             --bg-card: rgba(35, 35, 35, 0.6);
             --bg-card-hover: rgba(50, 50, 50, 0.9);
-            
-            --accent: #e5e5e5;              
-            --accent-dim: #a3a3a3;          
+
+            --accent: #e5e5e5;
+            --accent-dim: #a3a3a3;
             --accent-glow: rgba(255, 255, 255, 0.15);
-            
+
             --text-main: #ffffff;
             --text-sec: #9ca3af;
-            
+
             --border: rgba(255, 255, 255, 0.1);
             --blur: blur(20px);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
-        ::-webkit-scrollbar { width: 10px; height: 10px; }
-        ::-webkit-scrollbar-track { background: var(--bg-deep); }
-        ::-webkit-scrollbar-thumb {
-            background-color: #333; border-radius: 5px; border: 2px solid var(--bg-deep);
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
-        ::-webkit-scrollbar-thumb:hover { background-color: var(--accent-dim); }
-        * { scrollbar-width: thin; scrollbar-color: #333 var(--bg-deep); }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-deep);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: #333;
+            border-radius: 5px;
+            border: 2px solid var(--bg-deep);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: var(--accent-dim);
+        }
+
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #333 var(--bg-deep);
+        }
 
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background-color: var(--bg-deep);
             color: var(--text-main);
             height: 100vh;
-            display: flex; flex-direction: column; overflow: hidden;
-            background-image: 
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background-image:
                 radial-gradient(at 0% 0%, rgba(255, 255, 255, 0.05) 0px, transparent 50%),
                 radial-gradient(at 100% 100%, rgba(255, 255, 255, 0.03) 0px, transparent 50%);
         }
 
         header {
-            position: fixed; top: 0; left: 0; right: 0; height: 70px;
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 5%; background: var(--bg-glass);
-            backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
-            border-bottom: 1px solid var(--border); z-index: 50;
+            position: relative;
+            /* Changed from fixed */
+            flex-shrink: 0;
+            /* Prevents header from shrinking */
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 5%;
+            background: var(--bg-glass);
+            backdrop-filter: var(--blur);
+            -webkit-backdrop-filter: var(--blur);
+            border-bottom: 1px solid var(--border);
+            z-index: 50;
         }
 
-        .brand { font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 12px; letter-spacing: -0.02em; }
-        .brand i { color: var(--accent); font-size: 1.4rem; }
+        .brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: -0.02em;
+        }
 
-        .search-wrapper { flex: 1; max-width: 450px; position: relative; margin: 0 20px; }
+        .brand i {
+            color: var(--accent);
+            font-size: 1.4rem;
+        }
+
+        .search-wrapper {
+            flex: 1;
+            max-width: 450px;
+            position: relative;
+            margin: 0 20px;
+        }
+
         .search-input {
-            width: 100%; background: rgba(255,255,255,0.07); border: 1px solid var(--border);
-            border-radius: 50px; padding: 12px 24px 12px 45px; color: white; transition: 0.3s ease;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            padding: 12px 24px 12px 45px;
+            color: white;
+            transition: 0.3s ease;
         }
-        .search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); background: rgba(255,255,255,0.1); }
-        .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-sec); pointer-events: none; }
 
-        #library-view { flex: 1; overflow-y: auto; padding: 100px 5% 40px; }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-sec);
+            pointer-events: none;
+        }
+
+        #library-view {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px 5% 40px;
+        }
 
         .pdf-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-            gap: 25px; max-width: 1600px; margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 25px;
+            max-width: 1600px;
+            margin: 0 auto;
         }
 
         .pdf-card {
-            background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
-            padding: 20px; position: relative; cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            display: flex; flex-direction: column; height: 240px; 
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex;
+            flex-direction: column;
+            height: 240px;
             overflow: hidden;
         }
-        .pdf-card:hover { transform: translateY(-6px); background: var(--bg-card-hover); border-color: var(--accent-dim); box-shadow: 0 15px 30px rgba(0,0,0,0.4); }
-        
-        .pdf-card::after { 
-            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; 
-            background: linear-gradient(to bottom, var(--accent), #555); opacity: 0.8; 
+
+        .pdf-card:hover {
+            transform: translateY(-6px);
+            background: var(--bg-card-hover);
+            border-color: var(--accent-dim);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
         }
 
-        .card-icon { 
-            width: 36px; height: 36px; 
-            background: rgba(255,255,255,0.05); border-radius: 8px; 
-            display: flex; align-items: center; justify-content: center; 
-            font-size: 1.2rem; margin-bottom: 15px; color: var(--accent);
+        .pdf-card::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(to bottom, var(--accent), #555);
+            opacity: 0.8;
         }
-        
-        .card-title { 
-            font-weight: 500; font-size: 0.95rem; line-height: 1.5; color: var(--text-main);
-            display: -webkit-box; 
-            -webkit-line-clamp: 5; 
-            -webkit-box-orient: vertical; overflow: hidden; margin-bottom: auto; 
+
+        .card-icon {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+
+        .card-title {
+            font-weight: 500;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: var(--text-main);
+            display: -webkit-box;
+            -webkit-line-clamp: 5;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: auto;
             word-break: break-word;
         }
-        
-        .card-footer { margin-top: 15px; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-sec); }
-        
-        .badge { 
-            background: rgba(255, 255, 255, 0.15); color: #fff; 
-            padding: 3px 10px; border-radius: 4px; font-weight: 600; font-size: 0.75rem; 
-            border: 1px solid rgba(255,255,255,0.1);
+
+        .card-footer {
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-sec);
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         #viewer-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #050505;
-            z-index: 100; display: none; flex-direction: column; animation: fadeIn 0.3s ease;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #050505;
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            animation: fadeIn 0.3s ease;
         }
 
         #viewer-toolbar {
-            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 900px; height: 64px;
-            background: rgba(30, 30, 30, 0.95); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255,255,255,0.15); border-radius: 100px;
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); z-index: 200;
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 900px;
+            height: 64px;
+            background: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            z-index: 200;
             transition: opacity 0.3s ease, transform 0.3s ease;
             opacity: 1;
         }
 
-        .controls-hidden #viewer-toolbar { opacity: 0; transform: translateX(-50%) translateY(-20px); pointer-events: none; }
-        .toolbar-group { display: flex; align-items: center; gap: 8px; }
+        .controls-hidden #viewer-toolbar {
+            opacity: 0;
+            transform: translateX(-50%) translateY(-20px);
+            pointer-events: none;
+        }
+
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
         .btn-round {
-            width: 40px; height: 40px; border-radius: 50%; border: none; background: transparent;
-            color: var(--text-main); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: var(--text-main);
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
         }
-        .btn-round:hover { background: rgba(255,255,255,0.15); color: #fff; }
-        
-        .page-control { 
-            background: rgba(255,255,255,0.08); border-radius: 50px; height: 40px; 
-            display: flex; align-items: center; padding: 0 10px; gap: 2px;
+
+        .btn-round:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
         }
-        
-        .page-input { 
-            background: transparent; border: none; color: white; text-align: center; 
-            font-weight: 600; font-size: 1rem; width: 50px; border-bottom: 2px solid transparent; 
-            padding: 0; margin: 0; -moz-appearance: textfield;
+
+        .page-control {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            gap: 2px;
         }
-        .page-input::-webkit-outer-spin-button, .page-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .page-input:focus { outline: none; border-bottom-color: var(--accent); }
-        .page-total { color: var(--text-sec); font-size: 0.9rem; font-weight: 500; margin: 0 6px; white-space: nowrap; }
+
+        .page-input {
+            background: transparent;
+            border: none;
+            color: white;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1rem;
+            width: 50px;
+            border-bottom: 2px solid transparent;
+            padding: 0;
+            margin: 0;
+            -moz-appearance: textfield;
+        }
+
+        .page-input::-webkit-outer-spin-button,
+        .page-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .page-input:focus {
+            outline: none;
+            border-bottom-color: var(--accent);
+        }
+
+        .page-total {
+            color: var(--text-sec);
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin: 0 6px;
+            white-space: nowrap;
+        }
 
         .doc-title-float {
-            position: absolute; 
-            top: 130px; 
-            left: 50%; transform: translateX(-50%);
-            background: rgba(40,40,40,0.8); padding: 8px 20px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1);
-            font-size: 0.85rem; color: rgba(255,255,255,0.9); pointer-events: none;
-            transition: opacity 0.3s; backdrop-filter: blur(8px);
+            position: absolute;
+            top: 130px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(40, 40, 40, 0.8);
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.9);
+            pointer-events: none;
+            transition: opacity 0.3s;
+            backdrop-filter: blur(8px);
         }
-        .controls-hidden .doc-title-float { opacity: 0; }
 
-        /* FIXED: Removed justify-content: center to allow full scrolling when zoomed */
+        .controls-hidden .doc-title-float {
+            opacity: 0;
+        }
+
         #pdf-scroll-container {
-            flex: 1; overflow: auto; display: flex;
-            padding-top: 100px; padding-bottom: 50px; background: #0a0a0a; cursor: default; 
+            flex: 1;
+            overflow: auto;
+            display: flex;
+            padding-top: 100px;
+            padding-bottom: 50px;
+            background: #0a0a0a;
+            cursor: default;
             touch-action: pan-x pan-y;
         }
 
-        /* FIXED: Added margin: auto to handle safe centering */
-        #pdf-wrapper { 
-            position: relative; 
-            box-shadow: 0 5px 20px rgba(0,0,0,0.6); 
+        #pdf-wrapper {
+            position: relative;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.6);
             transition: opacity 0.2s;
-            transform-origin: center top; 
+            transform-origin: center top;
             margin: auto;
         }
 
-        .night-mode #pdf-wrapper { 
-            filter: invert(0.92) hue-rotate(180deg) grayscale(0.1); 
+        .night-mode #pdf-wrapper {
+            filter: invert(0.92) hue-rotate(180deg) grayscale(0.1);
             box-shadow: none !important;
         }
-        .night-mode #pdf-scroll-container { background: #000; }
+
+        .night-mode #pdf-scroll-container {
+            background: #000;
+        }
 
         .spinner {
-            width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-radius: 50%;
-            border-top-color: var(--accent); animation: spin 1s linear infinite; margin: 0 auto 20px;
-        }
-        #page-loader {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            z-index: 500; pointer-events: none; display: none;
-            flex-direction: column; align-items: center; gap: 15px;
-            background: rgba(30,30,30,0.9); padding: 25px; border-radius: 24px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
-        }
-        .page-spinner {
-            width: 50px; height: 50px; border: 4px solid rgba(255,255,255,0.1); border-radius: 50%;
-            border-left-color: var(--accent); animation: spin 0.8s linear infinite;
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--accent);
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
         }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        #page-loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 500;
+            pointer-events: none;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            background: rgba(30, 30, 30, 0.9);
+            padding: 25px;
+            border-radius: 24px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .page-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-left-color: var(--accent);
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
 
         @media (max-width: 768px) {
-            header { padding: 0 20px; }
-            .pdf-grid { grid-template-columns: 1fr; }
-            #viewer-toolbar { top: auto; bottom: 30px; width: 95%; padding: 0 10px; }
-            .controls-hidden #viewer-toolbar { transform: translateX(-50%) translateY(50px); }
-            #pdf-scroll-container { padding-top: 30px; padding-bottom: 100px; }
-            .hide-mobile { display: none; }
-            
-            .doc-title-float { top: 80px; font-size: 0.75rem; }
+            header {
+                padding: 0 15px;
+                gap: 10px;
+            }
+
+            .brand span {
+                display: none;
+            }
+
+            .pdf-grid {
+                grid-template-columns: 1fr;
+            }
+
+            #viewer-toolbar {
+                top: auto;
+                bottom: 30px;
+                width: 95%;
+                padding: 0 10px;
+            }
+
+            .controls-hidden #viewer-toolbar {
+                transform: translateX(-50%) translateY(50px);
+            }
+
+            #pdf-scroll-container {
+                padding-top: 30px;
+                padding-bottom: 100px;
+            }
+
+            .hide-mobile {
+                display: none;
+            }
+
+            .doc-title-float {
+                top: 80px;
+                font-size: 0.75rem;
+            }
         }
     </style>
 </head>
+
 <body>
 
     <header id="app-header">
-        <div class="brand"><i class="ri-book-read-fill"></i> Nikhil's Library</div>
+        <div class="brand" style="cursor: default;"><i class="ri-book-read-fill"></i> Nikhil's Library</div>
         <div class="search-wrapper">
             <i class="ri-search-line search-icon"></i>
             <input type="text" id="search-input" class="search-input" placeholder="Search library...">
         </div>
+
+        <label class="btn-round" title="Open Local PDF"
+            style="cursor: pointer; border: 1px solid var(--border); flex-shrink: 0; margin-left: 10px;">
+            <i class="ri-folder-open-line"></i>
+            <input type="file" id="local-file-trigger" accept=".pdf" style="display:none">
+        </label>
     </header>
 
     <div id="library-view">
@@ -230,12 +509,13 @@
             <p style="color:var(--text-sec);">Connecting to GitHub...</p>
         </div>
         <div id="pdf-grid" class="pdf-grid"></div>
-        
+
         <div id="scan-ui" style="display:none; text-align:center; margin-top:80px;">
             <div style="font-size: 4rem; margin-bottom: 20px;">😵</div>
             <h3>Could not reach GitHub</h3>
             <p style="color:var(--text-sec); margin-bottom:20px;">Rate limit exceeded or network error.</p>
-            <label class="btn-round" style="width:auto; padding:0 20px; border:1px solid var(--border); background:var(--bg-card);">
+            <label class="btn-round"
+                style="width:auto; padding:0 20px; border:1px solid var(--border); background:var(--bg-card);">
                 Open Local Folder
                 <input type="file" id="file-input" webkitdirectory directory multiple style="display:none">
             </label>
@@ -243,7 +523,7 @@
     </div>
 
     <div id="viewer-overlay">
-        
+
         <div id="page-loader">
             <div class="page-spinner"></div>
             <span style="font-size:0.9rem; color:#ccc;">Loading...</span>
@@ -261,11 +541,9 @@
                     <button class="btn-round" onclick="changePage(-1)" title="Previous (Left Arrow)">
                         <i class="ri-arrow-left-s-line"></i>
                     </button>
-                    <input type="number" id="current-page" class="page-input" value="1" 
-                           onkeydown="handlePageInput(event)">
-                    
+                    <input type="number" id="current-page" class="page-input" value="1"
+                        onkeydown="handlePageInput(event)">
                     <span class="page-total">/ <span id="total-pages">--</span></span>
-                    
                     <button class="btn-round" onclick="changePage(1)" title="Next (Right Arrow)">
                         <i class="ri-arrow-right-s-line"></i>
                     </button>
@@ -273,9 +551,12 @@
             </div>
 
             <div class="toolbar-group">
-                <button class="btn-round hide-mobile" onclick="adjustZoom(-0.25)" title="Zoom Out"><i class="ri-subtract-line"></i></button>
-                <button class="btn-round hide-mobile" onclick="adjustZoom(0.25)" title="Zoom In"><i class="ri-add-line"></i></button>
-                <button class="btn-round" onclick="toggleNightMode()" title="Theme"><i class="ri-moon-line" id="theme-icon"></i></button>
+                <button class="btn-round hide-mobile" onclick="adjustZoom(-0.25)" title="Zoom Out"><i
+                        class="ri-subtract-line"></i></button>
+                <button class="btn-round hide-mobile" onclick="adjustZoom(0.25)" title="Zoom In"><i
+                        class="ri-add-line"></i></button>
+                <button class="btn-round" onclick="toggleNightMode()" title="Theme"><i class="ri-moon-line"
+                        id="theme-icon"></i></button>
             </div>
         </div>
 
@@ -284,7 +565,9 @@
         <div id="pdf-scroll-container" onclick="toggleControls()">
             <div id="pdf-wrapper">
                 <canvas id="the-canvas"></canvas>
-                <div id="text-layer" class="textLayer" style="position:absolute; top:0; left:0; right:0; bottom:0; overflow:hidden; opacity:0.2; line-height:1.0;"></div>
+                <div id="text-layer" class="textLayer"
+                    style="position:absolute; top:0; left:0; right:0; bottom:0; overflow:hidden; opacity:0.2; line-height:1.0;">
+                </div>
             </div>
         </div>
     </div>
@@ -301,6 +584,7 @@
             touchStartDist: 0, touchStartScale: 1
         };
 
+        // Elements
         const els = {
             grid: document.getElementById('pdf-grid'),
             status: document.getElementById('status-area'),
@@ -389,12 +673,12 @@
             document.getElementById('app-header').style.display = 'none';
             document.getElementById('library-view').style.display = 'none';
             els.viewer.style.display = 'flex';
-            
+
             applyTheme();
             els.loader.style.display = 'flex';
 
             try {
-                if(state.pdfDoc) { state.pdfDoc.destroy(); state.pdfDoc = null; }
+                if (state.pdfDoc) { state.pdfDoc.destroy(); state.pdfDoc = null; }
                 const loadingTask = pdfjsLib.getDocument(url);
                 state.pdfDoc = await loadingTask.promise;
                 els.totalPages.innerText = state.pdfDoc.numPages;
@@ -426,10 +710,10 @@
             state.rendering = true;
             els.loader.style.display = 'flex';
             els.pdfWrapper.style.transform = `scale(1)`;
-            
+
             try {
                 const page = await state.pdfDoc.getPage(num);
-                const viewport = page.getViewport({scale: state.scale});
+                const viewport = page.getViewport({ scale: state.scale });
                 const outputScale = window.devicePixelRatio || 1;
                 els.canvas.width = Math.floor(viewport.width * outputScale);
                 els.canvas.height = Math.floor(viewport.height * outputScale);
@@ -453,16 +737,16 @@
 
                 els.pageInput.value = num;
                 localStorage.setItem(`pg_${state.currentPath}`, num);
-                
+
                 if (!state.touchStartDist) els.scroll.scrollTop = 0;
-                
-            } catch(e) {
+
+            } catch (e) {
                 console.error(e);
             } finally {
                 state.rendering = false;
                 els.loader.style.display = 'none';
-                if (state.queue) { 
-                    const next = state.queue; state.queue = null; renderPage(next); 
+                if (state.queue) {
+                    const next = state.queue; state.queue = null; renderPage(next);
                 }
             }
         }
@@ -475,8 +759,8 @@
                 if (e.touches.length === 2) {
                     state.touchStartDist = getDist(e.touches);
                     state.touchStartScale = state.scale; // Remember starting scale
-                    pinchScale = 1; 
-                    e.preventDefault(); 
+                    pinchScale = 1;
+                    e.preventDefault();
                 }
             }, { passive: false });
 
@@ -495,10 +779,10 @@
             container.addEventListener('touchend', (e) => {
                 // When fingers lift, commit the change
                 if (e.touches.length < 2 && state.touchStartDist > 0) {
-                    
+
                     // 1. Calculate the new official scale
                     let newScale = state.touchStartScale * pinchScale;
-                    
+
                     // 2. Limit the zoom (0.5x to 5.0x)
                     if (newScale < 0.5) newScale = 0.5;
                     if (newScale > 5.0) newScale = 5.0;
@@ -509,7 +793,7 @@
 
                     // 4. Re-render the page (this makes the text crisp and resets the CSS transform)
                     renderPage(state.pageNum);
-                    
+
                     // 5. Reset touch state
                     state.touchStartDist = 0;
                 }
@@ -532,16 +816,16 @@
         }
 
         function handlePageInput(e) {
-            e.stopPropagation(); 
+            e.stopPropagation();
             if (e.key === 'Enter') {
                 const val = parseInt(els.pageInput.value);
                 if (val >= 1 && val <= state.pdfDoc.numPages) {
                     state.pageNum = val;
-                    if(state.rendering) state.queue = val;
+                    if (state.rendering) state.queue = val;
                     else renderPage(val);
-                    e.target.blur(); 
+                    e.target.blur();
                 } else {
-                    els.pageInput.value = state.pageNum; 
+                    els.pageInput.value = state.pageNum;
                 }
             }
         }
@@ -550,28 +834,26 @@
             const next = state.pageNum + delta;
             if (state.pdfDoc && next >= 1 && next <= state.pdfDoc.numPages) {
                 state.pageNum = next;
-                if(state.rendering) state.queue = next;
+                if (state.rendering) state.queue = next;
                 else renderPage(next);
             }
         }
 
         function closeReader() {
-            if(state.pdfDoc) { state.pdfDoc.destroy(); state.pdfDoc = null; }
+            if (state.pdfDoc) { state.pdfDoc.destroy(); state.pdfDoc = null; }
             els.viewer.style.display = 'none';
             els.viewer.classList.remove('controls-hidden');
-            els.searchInput.value = ''; 
+            els.searchInput.value = '';
             document.getElementById('app-header').style.display = 'flex';
             document.getElementById('library-view').style.display = 'block';
-            renderLibrary(state.files); 
+            renderLibrary(state.files);
         }
 
         function adjustZoom(delta) {
             state.scale += delta;
-            if(state.scale < 0.5) state.scale = 0.5;
-            if(state.scale > 5.0) state.scale = 5.0; 
-            
+            if (state.scale < 0.5) state.scale = 0.5;
+            if (state.scale > 5.0) state.scale = 5.0;
             localStorage.setItem(`scale_${state.currentPath}`, state.scale);
-
             renderPage(state.pageNum);
         }
 
@@ -585,6 +867,7 @@
         }
 
         function applyTheme() {
+            // Supports both light and dark modes
             const icon = document.getElementById('theme-icon');
             if (state.isNight) {
                 els.viewer.classList.add('night-mode');
@@ -615,15 +898,32 @@
             });
         });
 
+        // Handler for local directory scan
         document.getElementById('file-input').addEventListener('change', (e) => {
             const raw = Array.from(e.target.files).filter(f => f.name.endsWith('.pdf'));
-            if(raw.length === 0) return alert("No PDFs found");
+            if (raw.length === 0) return alert("No PDFs found");
             state.fileMap = {};
             const paths = [];
             raw.forEach(f => { state.fileMap[f.name] = f; paths.push(f.name); });
             renderLibrary(paths);
             document.getElementById('scan-ui').style.display = 'none';
             els.grid.style.display = 'grid';
+        });
+
+        // Handler for single local file
+        document.getElementById('local-file-trigger').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            if (file.type !== 'application/pdf' && !file.name.endsWith('.pdf')) {
+                alert('Please select a PDF file.');
+                return;
+            }
+
+            const tempPath = "Local/" + file.name;
+            state.fileMap[tempPath] = file;
+            this.value = ''; // allow re-selecting same file
+            openReader(tempPath);
         });
     </script>
 </body>
