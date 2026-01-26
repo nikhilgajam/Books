@@ -570,8 +570,14 @@
             <div class="toolbar-group">
                 <button class="btn-round hide-mobile" onclick="adjustZoom(-0.25)" title="Zoom Out"><i
                         class="ri-subtract-line"></i></button>
+
                 <button class="btn-round hide-mobile" onclick="adjustZoom(0.25)" title="Zoom In"><i
                         class="ri-add-line"></i></button>
+
+                <button class="btn-round" onclick="rotateDoc()" title="Rotate">
+                    <i class="ri-clockwise-line"></i>
+                </button>
+
                 <button class="btn-round" onclick="toggleNightMode()" title="Theme"><i class="ri-moon-line"
                         id="theme-icon"></i></button>
             </div>
@@ -598,6 +604,7 @@
         let state = {
             files: [], fileMap: {}, pdfDoc: null, pageNum: 1, scale: 1.2,
             rendering: false, queue: null, currentPath: null, isNight: true,
+            rotation: undefined,
             touchStartDist: 0, touchStartScale: 1
         };
 
@@ -679,6 +686,7 @@
             state.currentPath = path;
             state.pageNum = parseInt(localStorage.getItem(`pg_${path}`)) || 1;
             els.title.innerText = path.split('/').pop();
+            state.rotation = undefined; // Setting rotation to default
 
             let url;
             if (state.fileMap[path]) url = URL.createObjectURL(state.fileMap[path]);
@@ -730,12 +738,13 @@
 
             try {
                 const page = await state.pdfDoc.getPage(num);
-                const viewport = page.getViewport({ scale: state.scale });
+                const viewport = page.getViewport({ scale: state.scale, rotation: state.rotation });
                 const outputScale = window.devicePixelRatio || 1;
                 els.canvas.width = Math.floor(viewport.width * outputScale);
                 els.canvas.height = Math.floor(viewport.height * outputScale);
                 els.canvas.style.width = Math.floor(viewport.width) + "px";
                 els.canvas.style.height = Math.floor(viewport.height) + "px";
+
                 const transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
 
                 await page.render({ canvasContext: els.ctx, transform: transform, viewport: viewport }).promise;
@@ -744,6 +753,7 @@
                 els.textLayer.style.width = Math.floor(viewport.width) + "px";
                 els.textLayer.style.height = Math.floor(viewport.height) + "px";
                 els.textLayer.style.setProperty('--scale-factor', viewport.scale);
+
                 const textContent = await page.getTextContent();
                 pdfjsLib.renderTextLayer({
                     textContentSource: textContent,
@@ -768,51 +778,87 @@
             }
         }
 
+        async function rotateDoc() {
+            if (state.rotation === undefined) {
+                const page = await state.pdfDoc.getPage(state.pageNum);
+                state.rotation = page.rotate;
+            }
+
+            state.rotation = (state.rotation + 90) % 360;
+            renderPage(state.pageNum);
+        }
+
         function setupPinchZoom() {
             const container = els.scroll;
-            let pinchScale = 1; // Track the temporary zoom level
+            let pinchScale = 1;
+            let touchStartX = 0; // NEW: To track swipe start
+            let touchStartY = 0;
 
             container.addEventListener('touchstart', (e) => {
+                // 1. Handle Pinch Start
                 if (e.touches.length === 2) {
                     state.touchStartDist = getDist(e.touches);
-                    state.touchStartScale = state.scale; // Remember starting scale
+                    state.touchStartScale = state.scale;
                     pinchScale = 1;
                     e.preventDefault();
                 }
+                // 2. Handle Swipe Start (Single finger)
+                else if (e.touches.length === 1) {
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                }
             }, { passive: false });
 
-            // touch events
             container.addEventListener('touchmove', (e) => {
+                // Handle Pinch Move
                 if (e.touches.length === 2) {
                     e.preventDefault();
                     const newDist = getDist(e.touches);
                     pinchScale = newDist / state.touchStartDist;
-                    // Apply visual stretch immediately (blurry but fast)
                     els.pdfWrapper.style.transform = `scale(${pinchScale})`;
                 }
+                // We let normal scrolling happen for 1 finger (don't preventDefault here)
             }, { passive: false });
 
-            // touch events
             container.addEventListener('touchend', (e) => {
-                // When fingers lift, commit the change
+                // 1. Commit Pinch Zoom
                 if (e.touches.length < 2 && state.touchStartDist > 0) {
-
-                    // 1. Calculate the new official scale
                     let newScale = state.touchStartScale * pinchScale;
-
-                    // 2. Limit the zoom (0.5x to 5.0x)
                     if (newScale < 0.5) newScale = 0.5;
                     if (newScale > 5.0) newScale = 5.0;
-
-                    // 3. Update global state
                     state.scale = newScale;
                     localStorage.setItem(`scale_${state.currentPath}`, state.scale);
-
-                    // 4. Re-render the page (this makes the text crisp and resets the CSS transform)
                     renderPage(state.pageNum);
-
-                    // 5. Reset touch state
                     state.touchStartDist = 0;
+                }
+                // 2. Handle Swipe Detection (Only if not pinching)
+                else if (e.changedTouches.length === 1 && state.touchStartDist === 0) {
+                    const touchEndX = e.changedTouches[0].clientX;
+                    const diffX = touchEndX - touchStartX;
+
+                    // CONFIG: Minimum distance (pixels) finger must move to trigger change
+                    const SWIPE_THRESHOLD = 100;
+
+                    // If the move was too small, ignore it
+                    if (Math.abs(diffX) < SWIPE_THRESHOLD) return;
+
+                    // Check if we are at the edges of the page
+                    // We use a small buffer (5px) to account for bounce effects or sub-pixel rendering
+                    const isAtLeftEdge = container.scrollLeft <= 5;
+                    const isAtRightEdge = (container.scrollLeft + container.clientWidth) >= (container.scrollWidth - 5);
+
+                    // LOGIC:
+                    // If swiping RIGHT (positive diff) -> We want Previous Page
+                    // But ONLY if we are already at the LEFT edge
+                    if (diffX > 0 && isAtLeftEdge) {
+                        changePage(-1); // Go to Previous
+                    }
+
+                    // If swiping LEFT (negative diff) -> We want Next Page
+                    // But ONLY if we are already at the RIGHT edge
+                    else if (diffX < 0 && isAtRightEdge) {
+                        changePage(1); // Go to Next
+                    }
                 }
             });
         }
@@ -826,9 +872,24 @@
 
         function handleGlobalKeys(e) {
             if (els.viewer.style.display === 'flex') {
+                // Toggle controls with Escape
+                if (e.key === 'Escape') {
+                    toggleControls();
+                    return;
+                }
+
+                // Ignore keys if typing in the page number box
                 if (document.activeElement === els.pageInput) return;
-                if (e.key === 'ArrowLeft') changePage(-1);
-                if (e.key === 'ArrowRight') changePage(1);
+
+                if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    changePage(-1);
+                }
+
+                if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    changePage(1);
+                }
             }
         }
 

@@ -39,6 +39,7 @@ Nikhil's Library is a serverless Single Page Application (SPA) that transforms a
 * **Keyboard Shortcuts:**
     * `Left/Right Arrows`: Navigate pages.
     * `Enter`: Jump to a specific page number.
+    * `Esc` : Hide or show control bar in reader view.
 
 ---
 
