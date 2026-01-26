@@ -9,8 +9,8 @@
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22%23e5e5e5%22 stroke=%22%230a0a0a%22 stroke-width=%221.5%22 stroke-linejoin=%22round%22><path d=%22M12 5c-3 0-6-1.5-8-3v16c2 1.5 5 3 8 3s6-1.5 8-3V2c-2 1.5-5 3-8 3z%22/><line x1=%2212%22 y1=%225%22 x2=%2212%22 y2=%2221%22/></svg>">
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.css">
+    <script src="pdf.min.js"></script>
+    <link rel="stylesheet" href="pdf_viewer.min.css">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 
     <style>
@@ -598,7 +598,7 @@
     <script>
         // Github repo details
         const GITHUB_CONFIG = { owner: 'nikhilgajam', repo: 'Books', branch: 'main' };
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
 
         // Default State
         let state = {
