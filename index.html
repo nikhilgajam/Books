@@ -930,7 +930,7 @@
         function adjustZoom(delta) {
             state.scale += delta;
             if (state.scale < 0.5) state.scale = 0.5;
-            if (state.scale > 5.0) state.scale = 5.0;
+            if (state.scale > 15.0) state.scale = 15.0;
             localStorage.setItem(`scale_${state.currentPath}`, state.scale);
             renderPage(state.pageNum);
         }
