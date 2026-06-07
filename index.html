@@ -344,22 +344,27 @@
 
         .doc-title-float {
             position: absolute;
-            top: 130px;
+            top: 24px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(40, 40, 40, 0.8);
-            padding: 8px 20px;
+            background: rgba(40, 40, 40, 0.95);
+            padding: 10px 24px;
             border-radius: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 0.85rem;
-            color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.95);
             pointer-events: none;
-            transition: opacity 0.3s;
-            backdrop-filter: blur(8px);
+            transition: opacity 0.3s, visibility 0.3s;
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            visibility: hidden;
+            z-index: 210;
+            white-space: nowrap;
         }
 
-        .controls-hidden .doc-title-float {
-            opacity: 0;
+        #viewer-overlay.show-title .doc-title-float {
+            opacity: 1;
+            visibility: visible;
         }
 
         #pdf-scroll-container {
@@ -496,8 +501,7 @@
             }
 
             .doc-title-float {
-                top: 80px;
-                font-size: 0.75rem;
+                display: none;
             }
         }
     </style>
@@ -591,6 +595,7 @@
                 <div id="text-layer" class="textLayer"
                     style="position:absolute; top:0; left:0; right:0; bottom:0; overflow:hidden; opacity:0.2; line-height:1.0;">
                 </div>
+                <div id="annotation-layer" style="position:absolute; top:0; left:0; right:0; bottom:0; pointer-events:none;"></div>
             </div>
         </div>
     </div>
@@ -627,13 +632,162 @@
 
         window.onload = init;
 
+        function getQueryBook() {
+            return new URLSearchParams(window.location.search).get('book');
+        }
+
+        const LIBRARY_STORAGE_KEY = "Nikhil'sLibrary";
+        const LEGACY_PAGE_PREFIX = 'pg_';
+        const LEGACY_SCALE_PREFIX = 'scale_';
+
+        function setBookQueryParam(bookName) {
+            const params = new URLSearchParams(window.location.search);
+            if (bookName) params.set('book', bookName);
+            else params.delete('book');
+            const newUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : '');
+            window.history.replaceState({}, '', newUrl);
+        }
+
+        // New storage format: { "Some Book.pdf": { page: 2, scale: 1.8 }, ... }
+        function readLibraryStorage() {
+            const raw = localStorage.getItem(LIBRARY_STORAGE_KEY);
+            if (!raw) return {};
+            try {
+                const parsed = JSON.parse(raw) || {};
+
+                // Detect legacy structure and migrate if needed
+                if (parsed.pages || parsed.scales) {
+                    const migrated = {};
+                    if (parsed.pages) {
+                        for (const k in parsed.pages) {
+                            migrated[k] = migrated[k] || {};
+                            migrated[k].page = parseInt(parsed.pages[k]) || 0;
+                        }
+                    }
+                    if (parsed.scales) {
+                        for (const k in parsed.scales) {
+                            migrated[k] = migrated[k] || {};
+                            const s = parseFloat(parsed.scales[k]);
+                            if (!isNaN(s)) migrated[k].scale = s;
+                        }
+                    }
+                    // Also preserve any already-new-format entries alongside migrated ones
+                    for (const k in parsed) {
+                        if (k === 'pages' || k === 'scales') continue;
+                        const v = parsed[k];
+                        if (v && (v.page != null || v.scale != null)) migrated[k] = Object.assign({}, v, migrated[k]);
+                    }
+                    localStorage.setItem(LIBRARY_STORAGE_KEY, JSON.stringify(migrated));
+                    return migrated;
+                }
+
+                // Normalize entries to ensure numeric types where possible
+                for (const k in parsed) {
+                    const v = parsed[k];
+                    if (v && typeof v === 'object') {
+                        if (v.page != null) v.page = parseInt(v.page) || 0;
+                        if (v.scale != null) {
+                            const s = parseFloat(v.scale);
+                            v.scale = isNaN(s) ? undefined : s;
+                        }
+                    }
+                }
+
+                return parsed;
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function writeLibraryStorage(data) {
+            localStorage.setItem(LIBRARY_STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function ensureLibraryStorage() {
+            const data = readLibraryStorage();
+            return data;
+        }
+
+        function getSavedPage(path) {
+            const data = readLibraryStorage();
+            if (data[path] && data[path].page != null) return parseInt(data[path].page) || 0;
+
+            // Legacy per-key fallback
+            const legacy = parseInt(localStorage.getItem(`${LEGACY_PAGE_PREFIX}${path}`));
+            if (!isNaN(legacy)) {
+                const updated = ensureLibraryStorage();
+                updated[path] = updated[path] || {};
+                updated[path].page = legacy;
+                writeLibraryStorage(updated);
+                localStorage.removeItem(`${LEGACY_PAGE_PREFIX}${path}`);
+                return legacy;
+            }
+
+            return 0;
+        }
+
+        function setSavedPage(path, pageNum) {
+            const data = ensureLibraryStorage();
+            data[path] = data[path] || {};
+            data[path].page = pageNum;
+            writeLibraryStorage(data);
+        }
+
+        function getSavedScale(path) {
+            const data = readLibraryStorage();
+            if (data[path] && data[path].scale != null) return parseFloat(data[path].scale);
+
+            // Legacy per-key fallback
+            const legacy = parseFloat(localStorage.getItem(`${LEGACY_SCALE_PREFIX}${path}`));
+            if (!isNaN(legacy)) {
+                const updated = ensureLibraryStorage();
+                updated[path] = updated[path] || {};
+                updated[path].scale = legacy;
+                writeLibraryStorage(updated);
+                localStorage.removeItem(`${LEGACY_SCALE_PREFIX}${path}`);
+                return legacy;
+            }
+
+            return NaN;
+        }
+
+        function setSavedScale(path, scale) {
+            const data = ensureLibraryStorage();
+            data[path] = data[path] || {};
+            data[path].scale = scale;
+            writeLibraryStorage(data);
+        }
+
+        function findPathByBookName(bookName) {
+            if (!bookName) return null;
+            return state.files.find(path => path.split('/').pop().replace('.pdf', '') === bookName);
+        }
+
+        function maybeOpenFromQuery() {
+            const book = getQueryBook();
+            const path = findPathByBookName(book);
+            if (path) openReader(path);
+        }
+
         async function init() {
             window.addEventListener('keydown', handleGlobalKeys);
             setupPinchZoom();
+            els.scroll.addEventListener('scroll', updateTitleVisibility);
             const cacheKey = `gh_${GITHUB_CONFIG.owner}_${GITHUB_CONFIG.repo}`;
             const cached = sessionStorage.getItem(cacheKey);
-            if (cached) renderLibrary(JSON.parse(cached));
-            else await fetchGitHub(cacheKey);
+            if (cached) {
+                renderLibrary(JSON.parse(cached));
+                maybeOpenFromQuery();
+            } else {
+                await fetchGitHub(cacheKey);
+                maybeOpenFromQuery();
+            }
+        }
+
+        function shouldIgnoreShortcut(event) {
+            const target = event.target;
+            const tag = target.tagName.toLowerCase();
+            return tag === 'input' || tag === 'textarea' || target.isContentEditable;
         }
 
         async function fetchGitHub(cacheKey) {
@@ -653,9 +807,8 @@
 
         function renderLibrary(files) {
             files.sort((a, b) => {
-                const getPage = (p) => parseInt(localStorage.getItem(`pg_${p}`)) || 0;
-                const pageA = getPage(a);
-                const pageB = getPage(b);
+                const pageA = getSavedPage(a);
+                const pageB = getSavedPage(b);
                 const isStartedA = pageA > 1;
                 const isStartedB = pageB > 1;
                 if (isStartedA && !isStartedB) return -1;
@@ -668,7 +821,7 @@
             els.grid.innerHTML = '';
             files.forEach(path => {
                 const name = path.split('/').pop().replace('.pdf', '');
-                const saved = parseInt(localStorage.getItem(`pg_${path}`)) || 0;
+                const saved = getSavedPage(path);
                 const badge = saved > 1 ? `<span class="badge">Pg ${saved}</span>` : '';
                 const card = document.createElement('div');
                 card.className = 'pdf-card';
@@ -684,9 +837,10 @@
 
         async function openReader(path) {
             state.currentPath = path;
-            state.pageNum = parseInt(localStorage.getItem(`pg_${path}`)) || 1;
+            state.pageNum = getSavedPage(path) || 1;
             els.title.innerText = path.split('/').pop();
             state.rotation = undefined; // Setting rotation to default
+            setBookQueryParam(path.split('/').pop().replace('.pdf', ''));
 
             let url;
             if (state.fileMap[path]) url = URL.createObjectURL(state.fileMap[path]);
@@ -698,6 +852,7 @@
             document.getElementById('app-header').style.display = 'none';
             document.getElementById('library-view').style.display = 'none';
             els.viewer.style.display = 'flex';
+            updateTitleVisibility();
 
             applyTheme();
             els.loader.style.display = 'flex';
@@ -709,9 +864,9 @@
                 els.totalPages.innerText = state.pdfDoc.numPages;
 
                 // Load Saved Zoom Value
-                const savedScale = parseFloat(localStorage.getItem(`scale_${path}`));
+                const savedScale = getSavedScale(path);
 
-                if (savedScale) {
+                if (!isNaN(savedScale)) {
                     state.scale = savedScale;
                 } else {
                     if (window.innerWidth < 768) {
@@ -731,7 +886,13 @@
             }
         }
 
-        async function renderPage(num) {
+        async function renderPage(num, preserveScroll = false) {
+            let scrollRatio = 0;
+            if (preserveScroll && els.pdfWrapper.clientHeight > els.scroll.clientHeight) {
+                const maxScroll = els.pdfWrapper.clientHeight - els.scroll.clientHeight;
+                scrollRatio = maxScroll > 0 ? els.scroll.scrollTop / maxScroll : 0;
+            }
+
             state.rendering = true;
             els.loader.style.display = 'flex';
             els.pdfWrapper.style.transform = `scale(1)`;
@@ -762,14 +923,32 @@
                     textDivs: []
                 });
 
-                els.pageInput.value = num;
-                localStorage.setItem(`pg_${state.currentPath}`, num);
+                // Render link annotations (clickable areas)
+                try {
+                    const annotationLayer = document.getElementById('annotation-layer');
+                    annotationLayer.innerHTML = '';
+                    const annotations = await page.getAnnotations({ intent: 'display' });
+                    renderAnnotations(annotations, viewport);
+                } catch (annErr) {
+                    console.error('Annotation render error', annErr);
+                }
 
-                if (!state.touchStartDist) els.scroll.scrollTop = 0;
+                els.pageInput.value = num;
+                setSavedPage(state.currentPath, num);
+
+                if (preserveScroll) {
+                    const maxScroll = els.pdfWrapper.clientHeight - els.scroll.clientHeight;
+                    if (Number.isFinite(scrollRatio) && maxScroll > 0) {
+                        els.scroll.scrollTop = Math.min(maxScroll, Math.max(0, scrollRatio * maxScroll));
+                    }
+                } else if (!state.touchStartDist) {
+                    els.scroll.scrollTop = 0;
+                }
 
             } catch (e) {
                 console.error(e);
             } finally {
+                updateTitleVisibility();
                 state.rendering = false;
                 els.loader.style.display = 'none';
                 if (state.queue) {
@@ -785,7 +964,7 @@
             }
 
             state.rotation = (state.rotation + 90) % 360;
-            renderPage(state.pageNum);
+            renderPage(state.pageNum, true);
         }
 
         function setupPinchZoom() {
@@ -827,8 +1006,8 @@
                     if (newScale < 0.5) newScale = 0.5;
                     if (newScale > 5.0) newScale = 5.0;
                     state.scale = newScale;
-                    localStorage.setItem(`scale_${state.currentPath}`, state.scale);
-                    renderPage(state.pageNum);
+                    setSavedScale(state.currentPath, state.scale);
+                    renderPage(state.pageNum, true);
                     state.touchStartDist = 0;
                 }
                 // 2. Handle Swipe Detection (Only if not pinching)
@@ -871,6 +1050,13 @@
         }
 
         function handleGlobalKeys(e) {
+            if (e.key === '/' && els.viewer.style.display !== 'flex' && !shouldIgnoreShortcut(e)) {
+                e.preventDefault();
+                els.searchInput.focus();
+                els.searchInput.select();
+                return;
+            }
+
             if (els.viewer.style.display === 'flex') {
                 // Toggle controls with Escape
                 if (e.key === 'Escape') {
@@ -922,6 +1108,7 @@
             els.viewer.style.display = 'none';
             els.viewer.classList.remove('controls-hidden');
             els.searchInput.value = '';
+            setBookQueryParam(null);
             document.getElementById('app-header').style.display = 'flex';
             document.getElementById('library-view').style.display = 'block';
             renderLibrary(state.files);
@@ -931,12 +1118,19 @@
             state.scale += delta;
             if (state.scale < 0.5) state.scale = 0.5;
             if (state.scale > 15.0) state.scale = 15.0;
-            localStorage.setItem(`scale_${state.currentPath}`, state.scale);
-            renderPage(state.pageNum);
+            setSavedScale(state.currentPath, state.scale);
+            renderPage(state.pageNum, true);
+        }
+
+        function updateTitleVisibility() {
+            const atTop = els.scroll.scrollTop <= 0;
+            const toolbarHidden = els.viewer.classList.contains('controls-hidden');
+            els.viewer.classList.toggle('show-title', toolbarHidden && atTop);
         }
 
         function toggleControls() {
             els.viewer.classList.toggle('controls-hidden');
+            updateTitleVisibility();
         }
 
         function toggleNightMode() {
@@ -962,7 +1156,7 @@
             els.grid.innerHTML = '';
             filtered.forEach(path => {
                 const name = path.split('/').pop().replace('.pdf', '');
-                const saved = parseInt(localStorage.getItem(`pg_${path}`)) || 0;
+                const saved = getSavedPage(path);
                 const badge = saved > 1 ? `<span class="badge">Pg ${saved}</span>` : '';
                 const card = document.createElement('div');
                 card.className = 'pdf-card';
@@ -975,6 +1169,90 @@
                 els.grid.appendChild(card);
             });
         });
+
+        // Render annotation overlays for links and destinations
+        function renderAnnotations(annotations, viewport) {
+            const layer = document.getElementById('annotation-layer');
+            if (!layer) return;
+            layer.innerHTML = '';
+
+            annotations.forEach(ann => {
+                if (ann.subtype !== 'Link') return;
+                if (!ann.rect) return;
+
+                const viewRect = viewport.convertToViewportRectangle(ann.rect);
+                const x1 = viewRect[0], y1 = viewRect[1], x2 = viewRect[2], y2 = viewRect[3];
+                const left = Math.min(x1, x2);
+                const top = Math.min(y1, y2);
+                const width = Math.abs(x2 - x1);
+                const height = Math.abs(y2 - y1);
+
+                const a = document.createElement('a');
+                a.className = 'pdf-link-annotation';
+                a.style.position = 'absolute';
+                a.style.left = left + 'px';
+                a.style.top = top + 'px';
+                a.style.width = width + 'px';
+                a.style.height = height + 'px';
+                a.style.pointerEvents = 'auto';
+                a.style.background = 'transparent';
+                a.style.zIndex = 300;
+
+                if (ann.url) {
+                    a.href = ann.url;
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                    a.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        // Let browser handle opening in new tab via target=_blank
+                    });
+                } else if (ann.dest) {
+                    a.href = '#';
+                    a.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        resolveDestinationAndNavigate(ann.dest);
+                    });
+                } else if (ann.dest === undefined && ann.action && ann.action.type === 'URI' && ann.action.uri) {
+                    // fallback for some annotation shapes
+                    a.href = ann.action.uri;
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                }
+
+                layer.appendChild(a);
+            });
+        }
+
+        function resolveDestinationAndNavigate(dest) {
+            (async () => {
+                try {
+                    let destination = dest;
+                    if (typeof dest === 'string') {
+                        destination = await state.pdfDoc.getDestination(dest);
+                    }
+                    if (!destination) return;
+
+                    const destRef = destination[0];
+                    let pageIndex;
+                    if (typeof destRef === 'object') {
+                        pageIndex = await state.pdfDoc.getPageIndex(destRef);
+                    } else if (typeof destRef === 'number') {
+                        pageIndex = destRef;
+                    } else {
+                        return;
+                    }
+
+                    const pageNum = pageIndex + 1;
+                    if (pageNum >= 1 && pageNum <= state.pdfDoc.numPages) {
+                        state.pageNum = pageNum;
+                        renderPage(pageNum);
+                    }
+                } catch (err) {
+                    console.error('Failed to resolve destination', err);
+                }
+            })();
+        }
 
         // Handler for local directory scan
         document.getElementById('file-input').addEventListener('change', (e) => {
