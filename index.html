@@ -168,11 +168,12 @@
             overflow: hidden;
         }
 
-        .pdf-card:hover {
+        .pdf-card:hover, .pdf-card:focus-visible {
             transform: translateY(-6px);
             background: var(--bg-card-hover);
             border-color: var(--accent-dim);
             box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
+            outline: none;
         }
 
         .pdf-card::after {
@@ -294,9 +295,10 @@
             transition: all 0.2s;
         }
 
-        .btn-round:hover {
+        .btn-round:hover, .btn-round:focus-visible {
             background: rgba(255, 255, 255, 0.15);
             color: #fff;
+            outline: none;
         }
 
         .page-control {
@@ -517,7 +519,7 @@
             <input type="text" id="search-input" class="search-input" placeholder="Search library...">
         </div>
 
-        <label class="btn-round" title="Open Local PDF"
+        <label class="btn-round" title="Open Local PDF" tabindex="0" onkeydown="if(event.key==='Enter') document.getElementById('local-file-trigger').click()"
             style="cursor: pointer; border: 1px solid var(--border); flex-shrink: 0; margin-left: 10px;">
             <i class="ri-folder-open-line"></i>
             <input type="file" id="local-file-trigger" accept=".pdf" style="display:none">
@@ -535,7 +537,7 @@
             <div style="font-size: 4rem; margin-bottom: 20px;">😵</div>
             <h3>Could not reach GitHub</h3>
             <p style="color:var(--text-sec); margin-bottom:20px;">Rate limit exceeded or network error.</p>
-            <label class="btn-round"
+            <label class="btn-round" tabindex="0" onkeydown="if(event.key==='Enter') document.getElementById('file-input').click()"
                 style="width:auto; padding:0 20px; border:1px solid var(--border); background:var(--bg-card);">
                 Open Local Folder
                 <input type="file" id="file-input" webkitdirectory directory multiple style="display:none">
@@ -825,7 +827,9 @@
                 const badge = saved > 1 ? `<span class="badge">Pg ${saved}</span>` : '';
                 const card = document.createElement('div');
                 card.className = 'pdf-card';
+                card.tabIndex = 0;
                 card.onclick = () => openReader(path);
+                card.onkeydown = (e) => { if (e.key === 'Enter') openReader(path); };
                 card.innerHTML = `
                     <div class="card-icon"><i class="ri-book-3-line"></i></div>
                     <div class="card-title">${name}</div>
@@ -1160,7 +1164,9 @@
                 const badge = saved > 1 ? `<span class="badge">Pg ${saved}</span>` : '';
                 const card = document.createElement('div');
                 card.className = 'pdf-card';
+                card.tabIndex = 0;
                 card.onclick = () => openReader(path);
+                card.onkeydown = (e) => { if (e.key === 'Enter') openReader(path); };
                 card.innerHTML = `
                     <div class="card-icon"><i class="ri-book-3-line"></i></div>
                     <div class="card-title">${name}</div>
