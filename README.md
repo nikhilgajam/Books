@@ -37,9 +37,20 @@ Nikhil's Library is a serverless Single Page Application (SPA) that transforms a
 * **Custom PDF Engine:** Built on top of **PDF.js (v3.11)** for high-fidelity rendering directly in the browser canvas.
 * **Offline Fallback:** Includes a "Local Folder" mode. If the GitHub API rate limit is reached, users can manually load a local folder of PDFs to use the reader interface. And also can read from your Local System with the load local PDF button.
 * **Keyboard Shortcuts:**
-    * `Left/Right Arrows`: Navigate pages.
-    * `Enter`: Jump to a specific page number.
-    * `Esc` : Hide or show control bar in reader view.
+
+    | Key | Where | Action |
+    | :--- | :--- | :--- |
+    | `Left` / `Right` Arrows | Reading mode | Navigate to previous / next page |
+    | `Enter` | Reading mode (page box focused) | Jump to the typed page number |
+    | `/` | Library view | Focus the search box |
+    | `/` | Reading mode | Show control bar and focus the page number input |
+    | `Esc` | Reading mode | Hide or show the control bar |
+    | `Esc` | Reading mode (page box focused) | Discard edit, blur input, hide control bar |
+    | `Shift + Esc` | Reading mode | Exit reading mode and return to library |
+    | `Shift + ←` / `Shift + →` | Reading mode | Scroll current page left / right (horizontal pan) |
+    | `Shift + ↑` / `Shift + ↓` | Reading mode | Zoom in / out |
+    | `R` | Reading mode | Rotate document 90° clockwise |
+    | `T` | Reading mode | Toggle dark / light (night) mode |
 
 ---
 

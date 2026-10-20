@@ -369,6 +369,8 @@
             visibility: visible;
         }
 
+        #pdf-scroll-container:focus { outline: none; }
+
         #pdf-scroll-container {
             flex: 1;
             overflow: auto;
@@ -493,7 +495,9 @@
                 transform: translateX(-50%) translateY(50px);
             }
 
-            #pdf-scroll-container {
+            #pdf-scroll-container:focus { outline: none; }
+
+        #pdf-scroll-container {
                 padding-top: 30px;
                 padding-bottom: 100px;
             }
@@ -591,7 +595,7 @@
 
         <div class="doc-title-float" id="viewer-title">Document Title</div>
 
-        <div id="pdf-scroll-container" onclick="toggleControls()">
+        <div id="pdf-scroll-container" tabindex="-1" onclick="toggleControls()">
             <div id="pdf-wrapper">
                 <canvas id="the-canvas"></canvas>
                 <div id="text-layer" class="textLayer"
@@ -1062,29 +1066,108 @@
             }
 
             if (els.viewer.style.display === 'flex') {
-                // Toggle controls with Escape
+                // Shift + Escape: exit reading mode entirely
+                if (e.key === 'Escape' && e.shiftKey) {
+                    e.preventDefault();
+                    closeReader();
+                    return;
+                }
+
+                // Escape: if page input is focused, blur it and hide controls; else toggle controls
                 if (e.key === 'Escape') {
-                    toggleControls();
+                    if (document.activeElement === els.pageInput) {
+                        els.pageInput.value = state.pageNum; // restore original value
+                        els.pageInput.blur();
+                        els.viewer.classList.add('controls-hidden');
+                        updateTitleVisibility();
+                        els.scroll.focus({ preventScroll: true });
+                    } else {
+                        toggleControls();
+                    }
+                    return;
+                }
+
+                // Focus page number input with / (show controls if hidden)
+                if (e.key === '/' && !shouldIgnoreShortcut(e)) {
+                    e.preventDefault();
+                    if (els.viewer.classList.contains('controls-hidden')) {
+                        els.viewer.classList.remove('controls-hidden');
+                        updateTitleVisibility();
+                    }
+                    els.pageInput.focus();
                     return;
                 }
 
                 // Ignore keys if typing in the page number box
                 if (document.activeElement === els.pageInput) return;
 
-                if (e.key === 'ArrowLeft') {
+                if (!e.shiftKey && e.key === 'ArrowLeft') {
                     e.preventDefault();
                     changePage(-1);
                 }
 
-                if (e.key === 'ArrowRight') {
+                if (!e.shiftKey && e.key === 'ArrowRight') {
                     e.preventDefault();
                     changePage(1);
+                }
+
+                // ArrowUp / ArrowDown: scroll PDF vertically
+                if (!e.shiftKey && e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    els.scroll.scrollBy({ top: -60, behavior: 'smooth' });
+                }
+
+                if (!e.shiftKey && e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    els.scroll.scrollBy({ top: 60, behavior: 'smooth' });
+                }
+
+                // Shift + Left / Right: horizontal scroll within the current page
+                if (e.shiftKey && e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    els.scroll.scrollBy({ left: -25, behavior: 'smooth' });
+                }
+
+                if (e.shiftKey && e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    els.scroll.scrollBy({ left: 25, behavior: 'smooth' });
+                }
+
+                // Shift + ArrowUp / ArrowDown: zoom in / out
+                if (e.shiftKey && e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    adjustZoom(0.25);
+                }
+
+                if (e.shiftKey && e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    adjustZoom(-0.25);
+                }
+
+                // r: rotate document (not when Shift or Ctrl is held)
+                if ((e.key === 'r' || e.key === 'R') && !e.shiftKey && !e.ctrlKey) {
+                    e.preventDefault();
+                    rotateDoc();
+                }
+
+                // t: toggle dark / light mode (not when Shift or Ctrl is held)
+                if ((e.key === 't' || e.key === 'T') && !e.shiftKey && !e.ctrlKey) {
+                    e.preventDefault();
+                    toggleNightMode();
                 }
             }
         }
 
         function handlePageInput(e) {
             e.stopPropagation();
+            if (e.key === 'Escape') {
+                els.pageInput.value = state.pageNum; // discard any typed value
+                els.pageInput.blur();
+                els.viewer.classList.add('controls-hidden');
+                updateTitleVisibility();
+                els.scroll.focus({ preventScroll: true });
+                return;
+            }
             if (e.key === 'Enter') {
                 const val = parseInt(els.pageInput.value);
                 if (val >= 1 && val <= state.pdfDoc.numPages) {
@@ -1135,6 +1218,10 @@
         function toggleControls() {
             els.viewer.classList.toggle('controls-hidden');
             updateTitleVisibility();
+            // Auto-focus scroll container when controls are hidden so arrow keys work
+            if (els.viewer.classList.contains('controls-hidden')) {
+                els.scroll.focus({ preventScroll: true });
+            }
         }
 
         function toggleNightMode() {
