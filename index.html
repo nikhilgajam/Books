@@ -1021,13 +1021,18 @@
                 // 2. Handle Swipe Detection (Only if not pinching)
                 else if (e.changedTouches.length === 1 && state.touchStartDist === 0) {
                     const touchEndX = e.changedTouches[0].clientX;
+                    const touchEndY = e.changedTouches[0].clientY;
                     const diffX = touchEndX - touchStartX;
+                    const diffY = touchEndY - touchStartY;
 
                     // CONFIG: Minimum distance (pixels) finger must move to trigger change
                     const SWIPE_THRESHOLD = 100;
 
                     // If the move was too small, ignore it
                     if (Math.abs(diffX) < SWIPE_THRESHOLD) return;
+
+                    // If the swipe is more vertical than horizontal, it's a scroll - ignore it
+                    if (Math.abs(diffY) > Math.abs(diffX)) return;
 
                     // Check if we are at the edges of the page
                     // We use a small buffer (5px) to account for bounce effects or sub-pixel rendering
@@ -1114,12 +1119,12 @@
                 // ArrowUp / ArrowDown: scroll PDF vertically
                 if (!e.shiftKey && e.key === 'ArrowUp') {
                     e.preventDefault();
-                    els.scroll.scrollBy({ top: -60, behavior: 'smooth' });
+                    els.scroll.scrollBy({ top: -60 });
                 }
 
                 if (!e.shiftKey && e.key === 'ArrowDown') {
                     e.preventDefault();
-                    els.scroll.scrollBy({ top: 60, behavior: 'smooth' });
+                    els.scroll.scrollBy({ top: 60 });
                 }
 
                 // Shift + Left / Right: horizontal scroll within the current page
