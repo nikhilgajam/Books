@@ -775,10 +775,179 @@
             if (path) openReader(path);
         }
 
+        const smoothScroll = {
+            animId: null,
+            lastTime: 0,
+            y: {
+                target: 0,
+                heldDir: 0,
+                startScroll: 0,
+                speed: 450,
+                lead: 60,
+                minStep: 35
+            },
+            x: {
+                target: 0,
+                heldDir: 0,
+                startScroll: 0,
+                speed: 250,
+                lead: 35,
+                minStep: 35
+            }
+        };
+
+        function stopSmoothScroll() {
+            if (smoothScroll.animId) {
+                cancelAnimationFrame(smoothScroll.animId);
+                smoothScroll.animId = null;
+            }
+            smoothScroll.y.heldDir = 0;
+            smoothScroll.x.heldDir = 0;
+            if (els.scroll) {
+                smoothScroll.y.target = els.scroll.scrollTop;
+                smoothScroll.x.target = els.scroll.scrollLeft;
+            }
+        }
+
+        function releaseSmoothScroll(axis, dir) {
+            const axes = axis ? [axis] : ['y', 'x'];
+            axes.forEach(ax => {
+                const state = smoothScroll[ax];
+                if (dir === undefined || state.heldDir === dir) {
+                    if (state.heldDir !== 0 && els.scroll) {
+                        const isY = ax === 'y';
+                        const current = isY ? els.scroll.scrollTop : els.scroll.scrollLeft;
+                        const moved = Math.abs(current - state.startScroll);
+                        if (moved < state.minStep) {
+                            const maxScroll = isY
+                                ? els.scroll.scrollHeight - els.scroll.clientHeight
+                                : els.scroll.scrollWidth - els.scroll.clientWidth;
+                            const target = state.startScroll + state.heldDir * state.minStep;
+                            state.target = Math.max(0, Math.min(maxScroll, target));
+                        }
+                    }
+                    state.heldDir = 0;
+                }
+            });
+        }
+
+        function startSmoothScroll(axis, dir) {
+            if (!els.scroll) return;
+            const isY = axis === 'y';
+            const maxScroll = isY
+                ? els.scroll.scrollHeight - els.scroll.clientHeight
+                : els.scroll.scrollWidth - els.scroll.clientWidth;
+            if (maxScroll <= 0) return;
+
+            const now = performance.now();
+            const state = smoothScroll[axis];
+            const current = isY ? els.scroll.scrollTop : els.scroll.scrollLeft;
+
+            if (!smoothScroll.animId || Math.sign(state.target - current) !== dir) {
+                state.target = current;
+            }
+
+            if (state.heldDir !== dir) {
+                state.heldDir = dir;
+                state.startScroll = current;
+            }
+
+            state.target = Math.max(0, Math.min(maxScroll, state.target));
+
+            if (!smoothScroll.animId) {
+                smoothScroll.lastTime = now;
+                smoothScroll.animId = requestAnimationFrame(stepSmoothScroll);
+            }
+        }
+
+        function stepSmoothScroll(now) {
+            if (!els.scroll) {
+                smoothScroll.animId = null;
+                return;
+            }
+
+            const dt = Math.min(now - smoothScroll.lastTime, 50);
+            smoothScroll.lastTime = now;
+            const factor = 1 - Math.pow(1 - 0.20, dt / 16.667);
+
+            let anyActive = false;
+
+            for (const ax of ['y', 'x']) {
+                const isY = ax === 'y';
+                const state = smoothScroll[ax];
+                const maxScroll = isY
+                    ? els.scroll.scrollHeight - els.scroll.clientHeight
+                    : els.scroll.scrollWidth - els.scroll.clientWidth;
+                if (maxScroll <= 0) {
+                    state.heldDir = 0;
+                    continue;
+                }
+
+                const current = isY ? els.scroll.scrollTop : els.scroll.scrollLeft;
+
+                if (state.heldDir !== 0) {
+                    state.target += state.heldDir * state.speed * (dt / 1000);
+                    state.target = Math.max(0, Math.min(maxScroll, state.target));
+
+                    if (state.heldDir > 0 && state.target - current > state.lead) {
+                        state.target = current + state.lead;
+                    } else if (state.heldDir < 0 && current - state.target > state.lead) {
+                        state.target = current - state.lead;
+                    }
+                }
+
+                const diff = state.target - current;
+
+                if (Math.abs(diff) < 0.5 && state.heldDir === 0) {
+                    if (isY) els.scroll.scrollTop = state.target;
+                    else els.scroll.scrollLeft = state.target;
+                } else {
+                    const next = current + diff * factor;
+                    const clamped = Math.max(0, Math.min(maxScroll, next));
+                    if (isY) els.scroll.scrollTop = clamped;
+                    else els.scroll.scrollLeft = clamped;
+                    anyActive = true;
+                }
+            }
+
+            if (anyActive) {
+                smoothScroll.animId = requestAnimationFrame(stepSmoothScroll);
+            } else {
+                smoothScroll.animId = null;
+            }
+        }
+
+        function handleGlobalKeyUp(e) {
+            if (e.key === 'ArrowUp') {
+                releaseSmoothScroll('y', -1);
+            } else if (e.key === 'ArrowDown') {
+                releaseSmoothScroll('y', 1);
+            } else if (e.key === 'ArrowLeft') {
+                releaseSmoothScroll('x', -1);
+            } else if (e.key === 'ArrowRight') {
+                releaseSmoothScroll('x', 1);
+            } else if (e.key === 'Shift') {
+                releaseSmoothScroll('x');
+            }
+        }
+
         async function init() {
             window.addEventListener('keydown', handleGlobalKeys);
+            window.addEventListener('keyup', handleGlobalKeyUp);
+            window.addEventListener('blur', stopSmoothScroll);
+            document.addEventListener('visibilitychange', stopSmoothScroll);
             setupPinchZoom();
             els.scroll.addEventListener('scroll', updateTitleVisibility);
+            els.scroll.addEventListener('wheel', () => {
+                if (smoothScroll.animId && smoothScroll.y.heldDir === 0 && smoothScroll.x.heldDir === 0) {
+                    stopSmoothScroll();
+                }
+            }, { passive: true });
+            els.scroll.addEventListener('touchstart', () => {
+                if (smoothScroll.animId) {
+                    stopSmoothScroll();
+                }
+            }, { passive: true });
             const cacheKey = `gh_${GITHUB_CONFIG.owner}_${GITHUB_CONFIG.repo}`;
             const cached = sessionStorage.getItem(cacheKey);
             if (cached) {
@@ -844,6 +1013,7 @@
         }
 
         async function openReader(path) {
+            stopSmoothScroll();
             state.currentPath = path;
             state.pageNum = getSavedPage(path) || 1;
             els.title.innerText = path.split('/').pop();
@@ -895,6 +1065,7 @@
         }
 
         async function renderPage(num, preserveScroll = false) {
+            stopSmoothScroll();
             let scrollRatio = 0;
             if (preserveScroll && els.pdfWrapper.clientHeight > els.scroll.clientHeight) {
                 const maxScroll = els.pdfWrapper.clientHeight - els.scroll.clientHeight;
@@ -1116,26 +1287,26 @@
                     changePage(1);
                 }
 
-                // ArrowUp / ArrowDown: scroll PDF vertically
+                // ArrowUp / ArrowDown: scroll PDF vertically (smooth scroll with continuous travel on hold)
                 if (!e.shiftKey && e.key === 'ArrowUp') {
                     e.preventDefault();
-                    els.scroll.scrollBy({ top: -60 });
+                    startSmoothScroll('y', -1);
                 }
 
                 if (!e.shiftKey && e.key === 'ArrowDown') {
                     e.preventDefault();
-                    els.scroll.scrollBy({ top: 60 });
+                    startSmoothScroll('y', 1);
                 }
 
-                // Shift + Left / Right: horizontal scroll within the current page
+                // Shift + Left / Right: smooth horizontal scroll within the current page
                 if (e.shiftKey && e.key === 'ArrowLeft') {
                     e.preventDefault();
-                    els.scroll.scrollBy({ left: -25, behavior: 'smooth' });
+                    startSmoothScroll('x', -1);
                 }
 
                 if (e.shiftKey && e.key === 'ArrowRight') {
                     e.preventDefault();
-                    els.scroll.scrollBy({ left: 25, behavior: 'smooth' });
+                    startSmoothScroll('x', 1);
                 }
 
                 // Shift + ArrowUp / ArrowDown: zoom in / out
@@ -1196,6 +1367,7 @@
         }
 
         function closeReader() {
+            stopSmoothScroll();
             if (state.pdfDoc) { state.pdfDoc.destroy(); state.pdfDoc = null; }
             els.viewer.style.display = 'none';
             els.viewer.classList.remove('controls-hidden');
@@ -1207,6 +1379,7 @@
         }
 
         function adjustZoom(delta) {
+            stopSmoothScroll();
             state.scale += delta;
             if (state.scale < 0.5) state.scale = 0.5;
             if (state.scale > 15.0) state.scale = 15.0;
