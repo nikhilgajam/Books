@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -1121,7 +1121,13 @@
                         els.scroll.scrollTop = Math.min(maxScroll, Math.max(0, scrollRatio * maxScroll));
                     }
                 } else if (!state.touchStartDist) {
+                    // Reset both vertical and horizontal scroll when navigating to a new page
                     els.scroll.scrollTop = 0;
+                    els.scroll.scrollLeft = 0;
+                    // Also reset smooth scroll targets so keyboard scrolling on new page
+                    // doesn't snap back to the previous page's scroll position
+                    smoothScroll.y.target = 0;
+                    smoothScroll.x.target = 0;
                 }
 
             } catch (e) {
@@ -1388,7 +1394,7 @@
         }
 
         function updateTitleVisibility() {
-            const atTop = els.scroll.scrollTop <= 0;
+            const atTop = els.scroll.scrollTop < 10;
             const toolbarHidden = els.viewer.classList.contains('controls-hidden');
             els.viewer.classList.toggle('show-title', toolbarHidden && atTop);
         }
