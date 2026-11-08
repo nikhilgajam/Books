@@ -778,10 +778,13 @@
         const smoothScroll = {
             animId: null,
             lastTime: 0,
+            lastSetY: 0,
+            lastSetX: 0,
             y: {
                 target: 0,
                 heldDir: 0,
                 startScroll: 0,
+                active: false,
                 speed: 450,
                 lead: 60,
                 minStep: 35
@@ -790,6 +793,7 @@
                 target: 0,
                 heldDir: 0,
                 startScroll: 0,
+                active: false,
                 speed: 250,
                 lead: 35,
                 minStep: 35
@@ -803,9 +807,13 @@
             }
             smoothScroll.y.heldDir = 0;
             smoothScroll.x.heldDir = 0;
+            smoothScroll.y.active = false;
+            smoothScroll.x.active = false;
             if (els.scroll) {
                 smoothScroll.y.target = els.scroll.scrollTop;
                 smoothScroll.x.target = els.scroll.scrollLeft;
+                smoothScroll.lastSetY = els.scroll.scrollTop;
+                smoothScroll.lastSetX = els.scroll.scrollLeft;
             }
         }
 
@@ -843,10 +851,11 @@
             const state = smoothScroll[axis];
             const current = isY ? els.scroll.scrollTop : els.scroll.scrollLeft;
 
-            if (!smoothScroll.animId || Math.sign(state.target - current) !== dir) {
+            if (!state.active || Math.sign(state.target - current) !== dir) {
                 state.target = current;
             }
 
+            state.active = true;
             if (state.heldDir !== dir) {
                 state.heldDir = dir;
                 state.startScroll = current;
@@ -856,6 +865,8 @@
 
             if (!smoothScroll.animId) {
                 smoothScroll.lastTime = now;
+                smoothScroll.lastSetY = els.scroll.scrollTop;
+                smoothScroll.lastSetX = els.scroll.scrollLeft;
                 smoothScroll.animId = requestAnimationFrame(stepSmoothScroll);
             }
         }
@@ -875,11 +886,14 @@
             for (const ax of ['y', 'x']) {
                 const isY = ax === 'y';
                 const state = smoothScroll[ax];
+                if (!state.active) continue;
+
                 const maxScroll = isY
                     ? els.scroll.scrollHeight - els.scroll.clientHeight
                     : els.scroll.scrollWidth - els.scroll.clientWidth;
                 if (maxScroll <= 0) {
                     state.heldDir = 0;
+                    state.active = false;
                     continue;
                 }
 
@@ -899,13 +913,25 @@
                 const diff = state.target - current;
 
                 if (Math.abs(diff) < 0.5 && state.heldDir === 0) {
-                    if (isY) els.scroll.scrollTop = state.target;
-                    else els.scroll.scrollLeft = state.target;
+                    const finalVal = Math.round(state.target);
+                    if (isY) {
+                        els.scroll.scrollTop = finalVal;
+                        smoothScroll.lastSetY = finalVal;
+                    } else {
+                        els.scroll.scrollLeft = finalVal;
+                        smoothScroll.lastSetX = finalVal;
+                    }
+                    state.active = false;
                 } else {
                     const next = current + diff * factor;
                     const clamped = Math.max(0, Math.min(maxScroll, next));
-                    if (isY) els.scroll.scrollTop = clamped;
-                    else els.scroll.scrollLeft = clamped;
+                    if (isY) {
+                        els.scroll.scrollTop = clamped;
+                        smoothScroll.lastSetY = clamped;
+                    } else {
+                        els.scroll.scrollLeft = clamped;
+                        smoothScroll.lastSetX = clamped;
+                    }
                     anyActive = true;
                 }
             }
@@ -937,17 +963,35 @@
             window.addEventListener('blur', stopSmoothScroll);
             document.addEventListener('visibilitychange', stopSmoothScroll);
             setupPinchZoom();
-            els.scroll.addEventListener('scroll', updateTitleVisibility);
-            els.scroll.addEventListener('wheel', () => {
-                if (smoothScroll.animId && smoothScroll.y.heldDir === 0 && smoothScroll.x.heldDir === 0) {
-                    stopSmoothScroll();
+            els.scroll.addEventListener('scroll', () => {
+                if (smoothScroll.animId) {
+                    // Check if scroll position was changed by user interaction (e.g. dragging the scrollbar)
+                    // rather than stepSmoothScroll
+                    const dy = Math.abs(els.scroll.scrollTop - (smoothScroll.lastSetY ?? els.scroll.scrollTop));
+                    const dx = Math.abs(els.scroll.scrollLeft - (smoothScroll.lastSetX ?? els.scroll.scrollLeft));
+                    if (dy > 3 || dx > 3) {
+                        stopSmoothScroll();
+                    }
+                } else {
+                    // Keep targets in sync when scrolling manually (scrollbar, wheel, etc.)
+                    smoothScroll.y.target = els.scroll.scrollTop;
+                    smoothScroll.x.target = els.scroll.scrollLeft;
+                    smoothScroll.lastSetY = els.scroll.scrollTop;
+                    smoothScroll.lastSetX = els.scroll.scrollLeft;
                 }
+                updateTitleVisibility();
+            });
+            els.scroll.addEventListener('wheel', () => {
+                stopSmoothScroll();
             }, { passive: true });
             els.scroll.addEventListener('touchstart', () => {
+                stopSmoothScroll();
+            }, { passive: true });
+            els.scroll.addEventListener('pointerdown', () => {
                 if (smoothScroll.animId) {
                     stopSmoothScroll();
                 }
-            }, { passive: true });
+            });
             const cacheKey = `gh_${GITHUB_CONFIG.owner}_${GITHUB_CONFIG.repo}`;
             const cached = sessionStorage.getItem(cacheKey);
             if (cached) {
@@ -1126,6 +1170,9 @@
                     // Also reset smooth scroll targets so keyboard scrolling on new page
                     // doesn't snap back to the previous page's scroll position
                     smoothScroll.y.target = 0;
+                    smoothScroll.lastSetY = 0;
+                    smoothScroll.x.target = els.scroll.scrollLeft;
+                    smoothScroll.lastSetX = els.scroll.scrollLeft;
                 }
 
             } catch (e) {
